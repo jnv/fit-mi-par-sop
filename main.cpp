@@ -133,21 +133,20 @@ bool hasElement(int elem, int n)
 bool loadSet()
 {
     int input;
-    int actualSet = 0;
     inputArray = new int[n];
     for(int i = 0; i < n; i++)
     {
         inputArray[i] = 0;
     }
 
-    for(int i = 0; i < n; i++)
+    while(cin >> input)
     {
-        cin >> input;
         if(input > c)
         {
-            cout << input << " je vetsi nez c";
+            cout << input << " je vetsi nez c" << endl;
             continue;
         }
+        cout << input << endl;
         inputArray[actualSet] = input;
         actualSet++;
 
@@ -158,14 +157,20 @@ bool loadSet()
             return false;
         }
 
+        if(actualSet > n)
+        {
+            break;
+        }
+
     }
     cout << "\n\nPrvky prevysujuce horni mez boli odstranene.\n" << endl;
+    return true;
 }
 
 int main(int argc, char **argv)
 {
 
-    if(argc != 3)
+    if(argc != 4)
     {
         printUsage();
         return 0;
@@ -186,7 +191,7 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    cout << "Nacitam prvky zo suboru: ";
+    cout << "Nacitam prvky zo suboru: " << endl;
     if(!loadSet())
         return 3;
 
@@ -263,7 +268,6 @@ int main(int argc, char **argv)
 
         for(int j = 0; j < totalIterator; j++)
         {
-
             if(mask[j] == '1')
             {
                 if(bitAND(temp, combinations[j]))
