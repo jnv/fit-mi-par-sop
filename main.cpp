@@ -85,7 +85,27 @@ struct Node
 
         return ret;
     }
-
+    
+    set<int>::iterator beginSet()
+    {
+      return inputSet.begin();
+    }
+    
+    set<int>::iterator endSet() const
+    {
+      return inputSet.end();
+    }
+    
+    void setErase(const int it)
+    {
+      inputSet.erase(it)
+    }
+    
+    int setSize() const
+    {
+      return inputSet.size();
+    }
+    
     bool empty()
     {
         return inputSet.empty();
@@ -165,15 +185,18 @@ void doSolve()
             cout << "Empty set." << endl;
             continue;
         }
-
-        while(!node->empty())
+        
+        int size = node->setSize();
+        for(int j = node->beginSet(); j != node->endSet(); j++)
         {
-            int add = node->pop();
+            Node * newNode = new Node(*node);
+            int add;
+            add = *j;
+            newNode->setErase(j);  
             for(int i = 0; i < a; i++)
             {
-                if(node->isFeasible(i, add))
+                if(newNode->isFeasible(i, add))
                 {
-                    Node * newNode = new Node(*node);
                     newNode->push(i, add);
                     stack.push(newNode);
                 }
