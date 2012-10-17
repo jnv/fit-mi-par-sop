@@ -69,8 +69,8 @@ struct Node
 
     bool push(const int set, const int number)
     {
-        if(!isFeasible(set, number))
-            return false;
+        /*if(!isFeasible(set, number))
+            return false;*/
         sets[set].push_back(number);
         sums[set] += number;
         penalty -= number;
@@ -131,19 +131,18 @@ struct Node
 void doSolve()
 {
     stack<Node*> stack;
-    bool found = false;
+    //bool found = false;
 
     Node * solution = new Node(S);
     stack.push(solution);
 
-    while(!stack.empty() || !found)
+    while(!stack.empty())
     {
         Node * node = stack.top();
         stack.pop();
 
         if(node->penalty == 0)
         {
-            found = true;
             cout << "0 penalty solution" << endl;
             delete solution;
             solution = node;
@@ -152,8 +151,11 @@ void doSolve()
 
         if(node->isBetterThan(solution))
         {
-            found = true;
             cout << "Better solution." << endl;
+#ifndef DEBUG
+            cout << node->toString() << endl;
+#endif
+
             delete solution;
             solution = node;
         }
@@ -169,14 +171,11 @@ void doSolve()
             int add = node->pop();
             for(int i = 0; i < a; i++)
             {
-                Node * newNode = new Node(*node);
-                if(newNode->push(i, add))
+                if(node->isFeasible(i, add))
                 {
+                    Node * newNode = new Node(*node);
+                    newNode->push(i, add);
                     stack.push(newNode);
-                }
-                else
-                {
-                    delete newNode;
                 }
             }
         }
@@ -184,7 +183,8 @@ void doSolve()
 #ifdef DEBUG
         cout << node->toString();
 #endif
-        //delete node;
+        if(node != solution)
+            delete node;
     }
 
     cout << "----------" << endl;
