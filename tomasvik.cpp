@@ -3,7 +3,6 @@
 #include <string>
 #include <stdio.h>
 #include <math.h>
-#include "stack.h"
 
 using namespace std;
 
@@ -102,12 +101,12 @@ void writeMaskedSet(string mask){
     for(int i=0;i<actualSet;i++)if(mask[i]=='1') cout << inputArray[i]<<" ";
     cout << endl;
 }
-int main()
+int main(int argc, char ** argv)
 {
 
 //Otvorenie suboru
 
- infile.open("C:/skola/input.txt");
+ infile.open(argv[1]);
  if( !infile ){
       cout << "Vstupny subor nebol najdeny.\n";
       return 0;
@@ -167,12 +166,12 @@ cout << "Nacitam prvky zo suboru: ";
 
     }
  }
- if(totalIterator!=n)
+ /*if(totalIterator!=n)
  {
  cout << "\nPocet prvkov nezodpoveda mohutnosti mnoziny.\n";
  delete [] inputArray;
  return 0;
- }
+ }*/
 
  cout << "\n\nPrvky prevysujuce horni mez boli odstranene.\n" << endl;
 
