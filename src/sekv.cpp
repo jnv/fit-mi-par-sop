@@ -29,6 +29,7 @@ struct Node
 {
     set<int> inputSet; // zbyvajici vstupni mnozina
     vector<int> * sets;
+    vector<int> placement;
     int * sums;
     int price;
 
@@ -63,6 +64,7 @@ struct Node
         sums = new int[a];
         sets = new vector<int>[a];
         price = 0;
+        placement.assign(a, 0);
     }
 
     ~Node()
