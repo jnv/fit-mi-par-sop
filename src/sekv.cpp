@@ -272,6 +272,8 @@ bool loadSet(char * fname)
     }
 #endif
 
+    cout << "c (max price per subset): " << c << endl << "a (number of subsets): " << a << endl;
+
     inputSet = new int[n];
 
     cout << "Loading " << n << " numbers" << endl;
