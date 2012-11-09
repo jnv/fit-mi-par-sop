@@ -200,15 +200,9 @@ void doSolve()
             continue;
         }
 
-        //int size = node->setSize();
-        //for(int j = node->beginSet(); j != node->endSet(); j++)
         while(!node->empty())
         {
         	int add = node->pop();
-//            Node * newNode = new Node(*node);
-//            int add;
-//            add = *j;
-//            newNode->setErase(j);
             for(int i = 0; i < a; i++)
             {
                 if(node->isFeasible(i, add))
@@ -216,7 +210,6 @@ void doSolve()
                 	Node * newNode = new Node(*node);
                     newNode->push(i, add);
                     stack.push(newNode);
-//                    cout << newNode->toString() << endl;
                 }
             }
         }
