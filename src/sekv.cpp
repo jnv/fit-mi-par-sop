@@ -15,6 +15,7 @@
 #include <sstream>
 #include <iomanip>
 #include "mpi.h"
+#include "common.h"
 using namespace std;
 
 #define DEBUG 1
@@ -25,7 +26,6 @@ using namespace std;
 int n = 0, c = 0, a = 0;
 int _upperBound = 0;
 int * _inputSet; // pole vstupnich dat
-set<int> S;
 
 struct Node
 {
@@ -292,7 +292,6 @@ bool loadSet(char * fname)
 		int in;
 		f >> in;
 		_inputSet[i] = in;
-		S.insert(in);
 	}
 
 	cout << "Loaded: ";
