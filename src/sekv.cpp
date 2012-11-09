@@ -30,7 +30,7 @@ set<int> S;
 struct Node
 {
 
-	vector<int> placement;
+	int * placement;
 	int * sums;
 	int price;
 	int start;
@@ -38,28 +38,35 @@ struct Node
 	Node()
 	{
 		init();
-		placement.assign(n, PLACE_NONE);
 		for (int i = 0; i < a; i++)
 		{
 			sums[i] = 0;
+		}
+		for (int i = 0; i < n; i++)
+		{
+			placement[i] = PLACE_NONE;
 		}
 	}
 
 	Node(const Node & o)
 	{
 		init();
-		placement = o.placement;
 		price = o.price;
 		start = o.start;
 		for (int i = 0; i < a; i++)
 		{
 			sums[i] = o.sums[i];
 		}
+		for (int i = 0; i < n; i++)
+		{
+			placement[i] = o.placement[i];
+		}
 	}
 
 	void init()
 	{
 		sums = new int[a];
+		placement = new int[n];
 		price = 0;
 		start = 0;
 	}
@@ -67,11 +74,7 @@ struct Node
 	~Node()
 	{
 		delete[] sums;
-	}
-
-	int getAt(const int index) const
-	{
-		return _inputSet[index];
+		delete[] placement;
 	}
 
 	bool isFeasible(const int subset, const int number) const
@@ -120,11 +123,11 @@ struct Node
 	string toString()
 	{
 		stringstream ret;
-		vector<int> * subsets = new vector<int> [a];
-		for (int i; i < a; i++)
-		{
-			subsets[i].clear();
-		}
+		stringstream * subsets = new stringstream[a];
+//		for (int i; i < a; i++)
+//		{
+//			subsets[i].clear();
+//		}
 
 		int width = 5;
 
@@ -136,7 +139,6 @@ struct Node
 
 		for (int i = 0; i < n; i++)
 		{
-			ret << placement.size();
 			int place = placement[i];
 
 			if (place == PLACE_NONE)
@@ -149,7 +151,7 @@ struct Node
 			}
 			else
 			{
-				subsets[place].push_back(_inputSet[i]);
+				subsets[place] << _inputSet[i] << " ";
 				ret << setw(width) << place;
 			}
 		}
@@ -160,10 +162,11 @@ struct Node
 		for (int i = 0; i < a; ++i)
 		{
 			ret << "Set " << i << " ";
-			ret << "[" << sums[i] << "]";
-			for (vector<int>::iterator it = subsets[i].begin();
-					it < subsets[i].end(); it++)
-				ret << " " << *it;
+			ret << "[" << sums[i] << "] ";
+//			for (vector<int>::iterator it = subsets[i].begin();
+//					it < subsets[i].end(); it++)
+//				ret << " " << *it;
+			ret << subsets[i].str();
 			ret << endl;
 		}
 		delete[] subsets;
@@ -233,7 +236,7 @@ void doSolve()
 		{
 			int add = _inputSet[i]; // for each element in the input set...
 			node->setTombstone(i);
-			node->start = i+1; // + 1;
+			node->start = i + 1; // + 1;
 			for (int subset = 0; subset < a; subset++)
 			{
 				if (node->isFeasible(subset, add)) // try if it can be added
