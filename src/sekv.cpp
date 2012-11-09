@@ -185,10 +185,8 @@ void doSolve()
 
         if(node->isBetterThan(solution))
         {
-            cout << "Better solution." << endl;
-#ifndef DEBUG
+            cout << "Better solution:" << endl;
             cout << node->toString() << endl;
-#endif
 
             delete solution;
             solution = node;
@@ -216,12 +214,13 @@ void doSolve()
                 	Node * newNode = new Node(*node);
                     newNode->push(i, add);
                     stack.push(newNode);
+//                    cout << newNode->toString() << endl;
                 }
             }
         }
 
 #ifdef DEBUG
-        cout << node->toString();
+        //cout << node->toString();
 #endif
         if(node != solution)
             delete node;
