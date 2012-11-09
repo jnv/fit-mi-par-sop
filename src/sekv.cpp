@@ -13,310 +13,343 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include "mpi.h"
 using namespace std;
 
 #define DEBUG 1
 
-int n = 0,
-        c = 0,
-        a = 0;
-int upperBound = 0;
-int * inputSet; // pole vstupnich dat
+#define PLACE_NONE -1
+#define PLACE_TOMBSTONE -2
+
+int n = 0, c = 0, a = 0;
+int _upperBound = 0;
+int * _inputSet; // pole vstupnich dat
 set<int> S;
 
 struct Node
 {
-    set<int> inputSet; // zbyvajici vstupni mnozina
-    vector<int> * sets;
-    vector<int> placement;
-    int * sums;
-    int price;
 
-    Node(const set<int> & givenInputSet)
-    {
-        inputSet = givenInputSet;
+	vector<int> placement;
+	int * sums;
+	int price;
+	int start;
 
-        init();
-        for(int i = 0; i < a; i++)
-        {
-            sums[i] = 0;
-            sets[i].clear();
-        }
-    }
+	Node(const set<int> & givenInputSet)
+	{
+		init();
+		for (int i = 0; i < a; i++)
+		{
+			sums[i] = 0;
+		}
+	}
 
-    Node(const Node & o)
-    {
-        inputSet = o.inputSet;
-        init();
-        price = o.price;
-        for(int i = 0; i < a; i++)
-        {
-            sums[i] = o.sums[i];
-            vector<int> oset = o.sets[i];
-            sets[i] = vector<int>(oset);
-        }
+	Node(const Node & o)
+	{
+		init();
+		placement = o.placement;
+		price = o.price;
+		start = o.start;
+		for (int i = 0; i < a; i++)
+		{
+			sums[i] = o.sums[i];
+		}
+	}
 
-    }
+	void init()
+	{
+		sums = new int[a];
+		price = 0;
+		start = 0;
+		//placement.clear();
+		//placement.assign(n, PLACE_NONE);
+		placement.resize(n, PLACE_NONE);
+	}
 
-    void init()
-    {
-        sums = new int[a];
-        sets = new vector<int>[a];
-        price = 0;
-        placement.assign(a, 0);
-    }
+	~Node()
+	{
+		delete[] sums;
+	}
 
-    ~Node()
-    {
-        delete [] sums;
-        delete [] sets;
-    }
+	int getAt(const int index) const
+	{
+		return _inputSet[index];
+	}
 
-    bool isFeasible(const int set, const int number) const
-    {
-        return(sums[set] + number) < c;
-    }
+	bool isFeasible(const int subset, const int number) const
+	{
+		return (sums[subset] + number) < c;
+	}
 
-    bool push(const int set, const int number)
-    {
-        /*if(!isFeasible(set, number))
-            return false;*/
-        sets[set].push_back(number);
-        sums[set] += number;
-        price += number;
-        return true;
-    }
+	void place(const int subset, const int index)
+	{
+		int addition = _inputSet[index];
+		placement[index] = subset;
+		sums[subset] += addition;
+		price += addition;
+	}
 
-    int pop()
-    {
-        set<int>::iterator it = inputSet.begin();
-        int ret = *it;
-        inputSet.erase(it);
+	void setTombstone(const int index)
+	{
+		placement[index] = PLACE_TOMBSTONE;
+	}
 
-        return ret;
-    }
+	int next(int after)
+	{
 
-    set<int>::iterator beginSet()
-    {
-      return inputSet.begin();
-    }
+		for (int i = after; i < n; ++i)
+		{
+			if (placement[i] != PLACE_NONE)
+			{
+				continue;
+			}
+			placement[i] = PLACE_TOMBSTONE;
+			return i;
+		}
+		return n;
+	}
 
-    set<int>::iterator endSet() const
-    {
-      return inputSet.end();
-    }
+	int begin() const
+	{
+		return start;
+	}
 
-    void setErase(const int it)
-    {
-      inputSet.erase(it);
-    }
+	bool empty()
+	{
+		return (price == 0);
+	}
 
-    int setSize() const
-    {
-      return inputSet.size();
-    }
+	string toString() const
+	{
+		stringstream ret;
+		vector<int> * subsets = new vector<int> [a];
+		for(int i; i < a; i++)
+		{
+			subsets[i].clear();
+		}
 
-    bool empty()
-    {
-        return inputSet.empty();
-    }
+		int width = 5;
 
-    string toString() const
-    {
-        stringstream ret;
-        ret << "Price " << price << endl;
-        for(int i = 0; i < a; i++)
-        {
-            ret << "Set " << i << " ";
-            ret << "[" << sums[i] << "]";
+		for (int i = 0; i < n; i++)
+		{
+			ret << setw(width) << _inputSet[i];
+		}
+		ret << endl;
+		//int size = placement.size();
+		for (int i = 0; i < n; i++)
+		{
+			int place = placement[i];
 
-            vector<int>::iterator it;
+			if (place == PLACE_NONE)
+			{
+				ret << setw(width) << 'N';
+			}
+			else if (place == PLACE_TOMBSTONE)
+			{
+				ret << setw(width) << 'X';
+			}
+			else
+			{
+				subsets[place].push_back(_inputSet[i]);
+				ret << setw(width) << place;
+			}
+		}
+		ret << endl;
 
-            for(it = sets[i].begin(); it < sets[i].end(); it++)
-                ret << " " << *it;
-            ret << endl;
-        }
+		ret << "Price " << price << endl;
 
-        return ret.str();
-    }
+		for (int i = 0; i < a; ++i)
+		{
+			ret << "Set " << i << " ";
+			ret << "[" << sums[i] << "]";
+			for (vector<int>::iterator it = subsets[i].begin(); it < subsets[i].end(); it++)
+				ret << " " << *it;
+			ret << endl;
+		}
+		delete[] subsets;
 
-    bool isBetterThan(const Node * o) const
-    {
-        return(price > o->price);
-    }
+		return ret.str();
+	}
 
-    inline int maxPrice() const
-    {
-    	return upperBound;
-    }
+	bool isBetterThan(const Node * o) const
+	{
+		return (price > o->price);
+	}
 
-    bool zeroPrice() const
-    {
-        return(price == 0);
-    }
+	inline int maxPrice() const
+	{
+		return _upperBound;
+	}
 
-    bool hasMaxPrice() const
-    {
-    	return price == maxPrice();
-    }
+	bool zeroPrice() const
+	{
+		return (price == 0);
+	}
 
+	bool hasMaxPrice() const
+	{
+		return price == maxPrice();
+	}
 
 };
 
 void doSolve()
 {
-    stack<Node*> stack;
-    //bool found = false;
+	stack<Node*> stack;
+	//bool found = false;
 
-    Node * solution = new Node(S);
-    stack.push(solution);
+	Node * solution = new Node(S);
+	stack.push(solution);
 
-    while(!stack.empty())
-    {
-        Node * node = stack.top();
-        stack.pop();
+	while (!stack.empty())
+	{
+		Node * node = stack.top();
+		stack.pop();
 
-        if(node->hasMaxPrice())
-        {
-            cout << "Maximum price solution" << endl;
-            delete solution;
-            solution = node;
-            break;
-        }
+		if (node->hasMaxPrice())
+		{
+			cout << "Maximum price solution" << endl;
+			delete solution;
+			solution = node;
+			break;
+		}
 
-        if(node->isBetterThan(solution))
-        {
-            cout << "Better solution:" << endl;
-            cout << node->toString() << endl;
+		if (node->isBetterThan(solution))
+		{
+			cout << "Better solution:" << endl;
+			cout << node->toString() << endl;
 
-            delete solution;
-            solution = node;
-        }
+			delete solution;
+			solution = node;
+		}
 
-        if(node->empty())
-        {
-            cout << "Empty set." << endl;
-            continue;
-        }
+		/*if (node->empty())
+		{
+			cout << "Empty set." << endl;
+			continue;
+		}*/
 
-        while(!node->empty())
-        {
-        	int add = node->pop();
-            for(int i = 0; i < a; i++)
-            {
-                if(node->isFeasible(i, add))
-                {
-                	Node * newNode = new Node(*node);
-                    newNode->push(i, add);
-                    stack.push(newNode);
-                }
-            }
-        }
+		for (int i = node->start; i < n; ++i)
+		{
+			int add = _inputSet[i]; // for each element in the input set...
+			node->setTombstone(i);
+			node->start = i;// + 1;
+			for (int subset = 0; subset < a; subset++)
+			{
+				if (node->isFeasible(subset, add)) // try if it can be added
+				{
+					Node * newNode = new Node(*node); // and add it
+					newNode->place(subset, i);
+					stack.push(newNode);
+					cout << newNode->toString() << endl;
+				}
+			}
+		}
 
 #ifdef DEBUG
-        //cout << node->toString();
+//		cout << node->toString();
 #endif
-        if(node != solution)
-            delete node;
-    }
+		if (node != solution)
+			delete node;
+	}
 
-    cout << "----------" << endl;
+	cout << "----------" << endl;
 
-    if(solution->zeroPrice())
-    {
-        cout << "Found nothing." << endl;
-    }
-    else
-    {
-        cout << "Found solution: " << endl << solution->toString() << endl;
-    }
+	if (solution->zeroPrice())
+	{
+		cout << "Found nothing." << endl;
+	}
+	else
+	{
+		cout << "Found solution: " << endl << solution->toString() << endl;
+	}
 
-    delete solution;
+	delete solution;
 }
 
 bool loadSet(char * fname)
 {
-    ifstream f;
-    f.open(fname);
+	ifstream f;
+	f.open(fname);
 
-    if(!f.is_open())
-    {
-        cout << "Cannot open input file: " << fname << endl;
-        return false;
-    }
+	if (!f.is_open())
+	{
+		cout << "Cannot open input file: " << fname << endl;
+		return false;
+	}
 
-    f >> n;
+	f >> n;
 #ifndef DEBUG
-    if(n < 20)
-    {
-        cout << "n must be 20 or more";
-        f.close();
-        return false;
-    }
+	if(n < 20)
+	{
+		cout << "n must be 20 or more";
+		f.close();
+		return false;
+	}
 #endif
 
-    f >> c;
-    f >> a;
+	f >> c;
+	f >> a;
 #ifndef DEBUG
-    if(a < 2 || a > n / 10)
-    {
-        cout << "a must be more than 1 and less than n/10.";
-        f.close();
-        return 0;
-    }
+	if(a < 2 || a > n / 10)
+	{
+		cout << "a must be more than 1 and less than n/10.";
+		f.close();
+		return 0;
+	}
 #endif
 
-    cout << "c (max price per subset): " << c << endl << "a (number of subsets): " << a << endl;
+	cout << "c (max price per subset): " << c << endl
+			<< "a (number of subsets): " << a << endl;
 
-    inputSet = new int[n];
+	_inputSet = new int[n];
 
-    cout << "Loading " << n << " numbers" << endl;
+	cout << "Loading " << n << " numbers" << endl;
 
-    for(int i = 0; i < n; i++)
-    {
-        int in;
-        f >> in;
-        inputSet[i] = in;
-        S.insert(in);
-    }
+	for (int i = 0; i < n; i++)
+	{
+		int in;
+		f >> in;
+		_inputSet[i] = in;
+		S.insert(in);
+	}
 
-    cout << "Loaded: ";
-    for(int i = 0; i < n; i++)
-    {
-        cout << inputSet[i] << " ";
-    }
-    cout << endl;
+	cout << "Loaded: ";
+	for (int i = 0; i < n; i++)
+	{
+		cout << _inputSet[i] << " ";
+	}
+	cout << endl;
 
-    upperBound = a * (c - 1);
-    cout << "Upper bound is: " << upperBound << endl;
+	_upperBound = a * (c - 1);
+	cout << "Upper bound is: " << _upperBound << endl;
 
-    return true;
+	return true;
 }
 
 int main(int argc, char ** argv)
 {
 	double start, stop;
-    if(argc != 2)
-    {
-        cout << "Usage: sop <file>" << endl;
-        return 0;
-    }
+	if (argc != 2)
+	{
+		cout << "Usage: sop <file>" << endl;
+		return 0;
+	}
 
-    if(!loadSet(argv[1]))
-    {
-        return 1;
-    }
+	if (!loadSet(argv[1]))
+	{
+		return 1;
+	}
 
-    MPI_Init(&argc, &argv);                     /* start up MPI */
-    start = MPI_Wtime();
-    doSolve();
-    stop = MPI_Wtime();
-    delete [] inputSet;
+	MPI_Init(&argc, &argv); /* start up MPI */
+	start = MPI_Wtime();
+	doSolve();
+	stop = MPI_Wtime();
+	delete[] _inputSet;
 
-    cout << "Solve time: " << stop - start << endl;
+	cout << "Solve time: " << stop - start << endl;
 
-    return 0;
+	return 0;
 
 }
 
