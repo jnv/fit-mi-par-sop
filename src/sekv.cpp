@@ -35,9 +35,10 @@ struct Node
 	int price;
 	int start;
 
-	Node(const set<int> & givenInputSet)
+	Node()
 	{
 		init();
+		placement.assign(n, PLACE_NONE);
 		for (int i = 0; i < a; i++)
 		{
 			sums[i] = 0;
@@ -61,9 +62,6 @@ struct Node
 		sums = new int[a];
 		price = 0;
 		start = 0;
-		//placement.clear();
-		//placement.assign(n, PLACE_NONE);
-		placement.resize(n, PLACE_NONE);
 	}
 
 	~Node()
@@ -94,20 +92,20 @@ struct Node
 		placement[index] = PLACE_TOMBSTONE;
 	}
 
-	int next(int after)
-	{
-
-		for (int i = after; i < n; ++i)
-		{
-			if (placement[i] != PLACE_NONE)
-			{
-				continue;
-			}
-			placement[i] = PLACE_TOMBSTONE;
-			return i;
-		}
-		return n;
-	}
+//	int next(int after)
+//	{
+//
+//		for (int i = after; i < n; ++i)
+//		{
+//			if ((*placement)[i] != PLACE_NONE)
+//			{
+//				continue;
+//			}
+//			(*placement)[i] = PLACE_TOMBSTONE;
+//			return i;
+//		}
+//		return n;
+//	}
 
 	int begin() const
 	{
@@ -119,11 +117,11 @@ struct Node
 		return (price == 0);
 	}
 
-	string toString() const
+	string toString()
 	{
 		stringstream ret;
 		vector<int> * subsets = new vector<int> [a];
-		for(int i; i < a; i++)
+		for (int i; i < a; i++)
 		{
 			subsets[i].clear();
 		}
@@ -135,9 +133,10 @@ struct Node
 			ret << setw(width) << _inputSet[i];
 		}
 		ret << endl;
-		//int size = placement.size();
+
 		for (int i = 0; i < n; i++)
 		{
+			ret << placement.size();
 			int place = placement[i];
 
 			if (place == PLACE_NONE)
@@ -162,7 +161,8 @@ struct Node
 		{
 			ret << "Set " << i << " ";
 			ret << "[" << sums[i] << "]";
-			for (vector<int>::iterator it = subsets[i].begin(); it < subsets[i].end(); it++)
+			for (vector<int>::iterator it = subsets[i].begin();
+					it < subsets[i].end(); it++)
 				ret << " " << *it;
 			ret << endl;
 		}
@@ -198,7 +198,7 @@ void doSolve()
 	stack<Node*> stack;
 	//bool found = false;
 
-	Node * solution = new Node(S);
+	Node * solution = new Node();
 	stack.push(solution);
 
 	while (!stack.empty())
@@ -224,16 +224,16 @@ void doSolve()
 		}
 
 		/*if (node->empty())
-		{
-			cout << "Empty set." << endl;
-			continue;
-		}*/
+		 {
+		 cout << "Empty set." << endl;
+		 continue;
+		 }*/
 
 		for (int i = node->start; i < n; ++i)
 		{
 			int add = _inputSet[i]; // for each element in the input set...
 			node->setTombstone(i);
-			node->start = i;// + 1;
+			node->start = i+1; // + 1;
 			for (int subset = 0; subset < a; subset++)
 			{
 				if (node->isFeasible(subset, add)) // try if it can be added
