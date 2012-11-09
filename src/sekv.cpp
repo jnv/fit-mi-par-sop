@@ -95,21 +95,6 @@ struct Node
 		placement[index] = PLACE_TOMBSTONE;
 	}
 
-//	int next(int after)
-//	{
-//
-//		for (int i = after; i < n; ++i)
-//		{
-//			if ((*placement)[i] != PLACE_NONE)
-//			{
-//				continue;
-//			}
-//			(*placement)[i] = PLACE_TOMBSTONE;
-//			return i;
-//		}
-//		return n;
-//	}
-
 	int begin() const
 	{
 		return start;
@@ -124,10 +109,6 @@ struct Node
 	{
 		stringstream ret;
 		stringstream * subsets = new stringstream[a];
-//		for (int i; i < a; i++)
-//		{
-//			subsets[i].clear();
-//		}
 
 		int width = 5;
 
@@ -157,19 +138,16 @@ struct Node
 		}
 		ret << endl;
 
-		ret << "Price " << price << endl;
-
 		for (int i = 0; i < a; ++i)
 		{
 			ret << "Set " << i << " ";
 			ret << "[" << sums[i] << "] ";
-//			for (vector<int>::iterator it = subsets[i].begin();
-//					it < subsets[i].end(); it++)
-//				ret << " " << *it;
 			ret << subsets[i].str();
 			ret << endl;
 		}
 		delete[] subsets;
+
+		ret << "Price " << price << endl;
 
 		return ret.str();
 	}
@@ -244,7 +222,7 @@ void doSolve()
 					Node * newNode = new Node(*node); // and add it
 					newNode->place(subset, i);
 					stack.push(newNode);
-					cout << newNode->toString() << endl;
+					//cout << newNode->toString() << endl;
 				}
 			}
 		}
