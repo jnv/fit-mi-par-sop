@@ -18,6 +18,8 @@ using namespace std;
 #ifndef NODE_H_
 #define NODE_H_
 
+//#define TWOLINE //two-line output
+
 struct Node
 {
 	/**
@@ -32,7 +34,11 @@ struct Node
 	int * placement;
 
 	/**
-	 * Array of sums of subsets
+	 * Array of sums of subsets, e.g.
+	 * _inputSet: 1  2  3  4  5  6
+	 * placement: 0  1  X  1  N  N
+	 * sums[0] 1
+	 * sums[1] 6
 	 */
 	int * sums;
 
@@ -44,6 +50,10 @@ struct Node
 	/**
 	 * Starting element, used for caching
 	 * All previous placed members and tombstones should be ignored
+	 *
+	 * E.g., for the following placement:
+	 * 0  1  X  1  N  N
+	 * start can be calculated as 4
 	 */
 	int start;
 
@@ -65,6 +75,7 @@ struct Node
 
 	/**
 	 * Copy constructor
+	 * @param o
 	 */
 	Node(const Node & o)
 	{
@@ -168,6 +179,13 @@ struct Node
 		return price == maxPrice();
 	}
 
+	/**
+	 * String representation of the node
+	 * Outputs _inputSet's members placements, eg:
+	 * <samp>1:X 3:0 4:N 7:X</samp>
+	 * Where: X is tombstone, N is unused member, integer is a member's subset
+	 * @return
+	 */
 	string toString()
 	{
 		stringstream ret;
@@ -175,31 +193,41 @@ struct Node
 
 		int width = 5;
 
+#ifdef TWOLINE
 		for (int i = 0; i < n; i++)
 		{
 			ret << setw(width) << _inputSet[i];
 		}
 		ret << endl;
+#endif
 
 		for (int i = 0; i < n; i++)
 		{
 			int place = placement[i];
 
+#ifndef TWOLINE
+			ret << setw(width) << _inputSet[i] << ':';
+			ret << setw(0);
+#else
+			ret << setw(width);
+#endif
+
 			if (place == PLACE_NONE)
 			{
-				ret << setw(width) << 'N';
+				ret << 'N';
 			}
 			else if (place == PLACE_TOMBSTONE)
 			{
-				ret << setw(width) << 'X';
+				ret << 'X';
 			}
 			else
 			{
 				subsets[place] << _inputSet[i] << " ";
-				ret << setw(width) << place;
+				ret << place;
 			}
 		}
 		ret << endl;
+		ret << setw(0);
 
 		for (int i = 0; i < a; ++i)
 		{
