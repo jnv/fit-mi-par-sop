@@ -20,12 +20,36 @@ using namespace std;
 
 struct Node
 {
-
+	/**
+	 * Placement of set's members into subsets, e.g.:
+	 * _inputSet: 1  2  3  4  5  6
+	 * placement: 0  1  X  1  N  N
+	 * Where:
+	 * 0, 1 - subset 0, 1
+	 * N - PLACE_NONE - member was not yet placed
+	 * X - PLACE_TOMBSTONE - member will be ignored
+	 */
 	int * placement;
+
+	/**
+	 * Array of sums of subsets
+	 */
 	int * sums;
+
+	/**
+	 * Total price of this node
+	 */
 	int price;
+
+	/**
+	 * Starting element, used for caching
+	 * All previous placed members and tombstones should be ignored
+	 */
 	int start;
 
+	/**
+	 * Standard constructor
+	 */
 	Node()
 	{
 		init();
@@ -39,6 +63,9 @@ struct Node
 		}
 	}
 
+	/**
+	 * Copy constructor
+	 */
 	Node(const Node & o)
 	{
 		init();
@@ -54,6 +81,10 @@ struct Node
 		}
 	}
 
+	/**
+	 * Initialization
+	 * Set-up sums, placement arrays, price and start
+	 */
 	void init()
 	{
 		sums = new int[a];
@@ -68,11 +99,26 @@ struct Node
 		delete[] placement;
 	}
 
+	/**
+	 * Whether the given number can be added to a subset
+	 * (the resulting sum must be lower than c)
+	 * @param subset
+	 * @param number
+	 * @return
+	 */
 	bool isFeasible(const int subset, const int number) const
 	{
 		return (sums[subset] + number) < c;
 	}
 
+	/**
+	 * Place the number on the index of the _inputSet
+	 * into a given subset
+	 * Also adds the number to a sum of the subset (in subsets array)
+	 * and total price of the node
+	 * @param subset
+	 * @param index
+	 */
 	void place(const int subset, const int index)
 	{
 		int addition = _inputSet[index];
@@ -81,19 +127,45 @@ struct Node
 		price += addition;
 	}
 
+	/**
+	 * Sets the number on the index as tombstone
+	 * @param index
+	 */
 	void setTombstone(const int index)
 	{
 		placement[index] = PLACE_TOMBSTONE;
 	}
 
-	int begin() const
-	{
-		return start;
-	}
-
 	bool empty()
 	{
 		return (price == 0);
+	}
+
+	/**
+	 * @param o
+	 * @return True if the price of this node is higher than the o node
+	 */
+	bool isBetterThan(const Node * o) const
+	{
+		return (price > o->price);
+	}
+
+	inline int maxPrice() const
+	{
+		return _upperBound;
+	}
+
+	bool hasZeroPrice() const
+	{
+		return (price == 0);
+	}
+
+	/**
+	 * @return True if this is possibly the best solution
+	 */
+	bool hasMaxPrice() const
+	{
+		return price == maxPrice();
 	}
 
 	string toString()
@@ -141,26 +213,6 @@ struct Node
 		ret << "Price " << price << endl;
 
 		return ret.str();
-	}
-
-	bool isBetterThan(const Node * o) const
-	{
-		return (price > o->price);
-	}
-
-	inline int maxPrice() const
-	{
-		return _upperBound;
-	}
-
-	bool zeroPrice() const
-	{
-		return (price == 0);
-	}
-
-	bool hasMaxPrice() const
-	{
-		return price == maxPrice();
 	}
 
 };

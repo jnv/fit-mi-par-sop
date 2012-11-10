@@ -21,21 +21,24 @@ int n = 0, c = 0, a = 0;
 int _upperBound = 0;
 int * _inputSet; // pole vstupnich dat
 
-
-
+/**
+ * Main solve cycle
+ */
 void doSolve()
 {
-	stack<Node*> stack;
-	//bool found = false;
+	stack<Node*> stack; // work stack
 
+	// Create empty, and the temporary best, solution
 	Node * solution = new Node();
 	stack.push(solution);
 
 	while (!stack.empty())
 	{
+		// Get the top node
 		Node * node = stack.top();
 		stack.pop();
 
+		// Node is (c-1)*a, time to end
 		if (node->hasMaxPrice())
 		{
 			cout << "Maximum price solution" << endl;
@@ -44,6 +47,7 @@ void doSolve()
 			break;
 		}
 
+		// Node has higher price than the current solution
 		if (node->isBetterThan(solution))
 		{
 			cout << "Better solution:" << endl;
@@ -59,33 +63,35 @@ void doSolve()
 		 continue;
 		 }*/
 
+		// For each element in the input set...
+		// (Ignore previous members of set)
 		for (int i = node->start; i < n; ++i)
 		{
-			int add = _inputSet[i]; // for each element in the input set...
-			node->setTombstone(i);
-			node->start = i + 1; // + 1;
+			int add = _inputSet[i];
+			node->setTombstone(i); // Mark the current member as unused (will be overriden by Node::place)
+			node->start = i + 1; // ...and set the start to the next element
+
+			// For each subset...
 			for (int subset = 0; subset < a; subset++)
 			{
-				if (node->isFeasible(subset, add)) // try if it can be added
+				// If the member can be added to the subset...
+				if (node->isFeasible(subset, add))
 				{
-					Node * newNode = new Node(*node); // and add it
+					// Create new node with the member placed into the subset
+					Node * newNode = new Node(*node);
 					newNode->place(subset, i);
 					stack.push(newNode);
-					//cout << newNode->toString() << endl;
 				}
 			}
 		}
 
-#ifdef DEBUG
-//		cout << node->toString();
-#endif
 		if (node != solution)
 			delete node;
 	}
 
 	cout << "----------" << endl;
 
-	if (solution->zeroPrice())
+	if (solution->hasZeroPrice())
 	{
 		cout << "Found nothing." << endl;
 	}
@@ -161,7 +167,7 @@ int main(int argc, char ** argv)
 	double start, stop;
 	if (argc != 2)
 	{
-		cout << "Usage: sop <file>" << endl;
+		cout << "Usage: sekv <file>" << endl;
 		return 0;
 	}
 
