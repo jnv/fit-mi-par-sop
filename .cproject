@@ -140,6 +140,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.342849588" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/lib/openmpi/include/"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.warnings.pedantic.1069229678" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1294692454" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="mpicc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1613667303" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -165,9 +166,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.86336133" name="par.cpp" rcbsApplicability="disable" resourcePath="src/par.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2009388313.1835310228">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2009388313.1835310228" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2009388313"/>
-					</fileInfo>
 					<sourceEntries>
 						<entry excluding="par.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
@@ -191,7 +189,6 @@
 			<resource resourceType="PROJECT" workspacePath="/par"/>
 		</configuration>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
@@ -201,10 +198,10 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655;cdt.managedbuild.config.gnu.exe.debug.620946655.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1091379642;cdt.managedbuild.tool.gnu.cpp.compiler.input.1344886732">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1613667303;cdt.managedbuild.tool.gnu.c.compiler.input.251094366">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.198778912;cdt.managedbuild.config.gnu.exe.release.198778912.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.1931892095;cdt.managedbuild.tool.gnu.c.compiler.input.1032362890">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.198778912;cdt.managedbuild.config.gnu.exe.release.198778912.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.1931892095;cdt.managedbuild.tool.gnu.c.compiler.input.1032362890">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1613667303;cdt.managedbuild.tool.gnu.c.compiler.input.251094366">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2009388313;cdt.managedbuild.tool.gnu.cpp.compiler.input.1294692454">
@@ -213,5 +210,25 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.198778912;cdt.managedbuild.config.gnu.exe.release.198778912.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1426610901;cdt.managedbuild.tool.gnu.cpp.compiler.input.333169719">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="par" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>par</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="sekv" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>sekv</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+		</buildTargets>
 	</storageModule>
 </cproject>
