@@ -16,7 +16,6 @@
 #include "common.h"
 #include "mpiutil.h"
 #include "Node.h"
-#include "Log.h"
 using namespace std;
 
 int n = 0, c = 0, a = 0;
@@ -25,6 +24,14 @@ int * _inputSet; // pole vstupnich dat
 
 int _thisRank;
 int _procCnt;
+
+FILE* _logFile;
+
+#define LOG_OUTPUT _logFile // cerr
+
+// http://stackoverflow.com/questions/1644868/c-define-macro-for-debug-printing
+#define log(fmt, ...) \
+            do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); } while (0)
 
 /**
  * Main solve cycle
@@ -111,11 +118,13 @@ int main(int argc, char ** argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &_thisRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &_procCnt);
 
-	char* logFile;
-	sprintf(logFile, "log-%d.log", _thisRank);
-	Log::Init(logFile);
+	char logFileName[20];
+	sprintf(logFileName, "logs/log-%d-%d.log", _thisRank, _procCnt);
+	_logFile = fopen(logFileName, "w");
 
-	if(_thisRank == 0)
+	log("Proc %d out of %d\n", _thisRank, _procCnt);
+
+	if (_thisRank == 0)
 	{
 		initFirstProc(argv[1]);
 	}
@@ -130,19 +139,19 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 
-
-
 	if (!loadSet(argv[1]))
 	{
 		return 1;
 	}
 
 	start = MPI_Wtime();
-	doSolve();
+	//doSolve();
 	stop = MPI_Wtime();
 	delete[] _inputSet;
 
-	cout << "Solve time: " << stop - start << endl;
+	//cout << "Solve time: " << stop - start << endl;
+
+	fclose(_logFile);
 
 	return 0;
 
