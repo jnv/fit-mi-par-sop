@@ -1,0 +1,8 @@
+gem/
+logs/
+*Debug/
+tmp/
+par
+sekv
+.git/
+.settings/

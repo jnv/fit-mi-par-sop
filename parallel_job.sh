@@ -63,7 +63,7 @@ INFINIBAND="true"
 # | Parallel program with arguments.                                          |
 # |                                                                           |
 #  ===========================================================================
-MY_PARALLEL_PROGRAM="./my_parallel_program arg1 arg2 ..."
+MY_PARALLEL_PROGRAM="./par in08.txt"
 
 
 
