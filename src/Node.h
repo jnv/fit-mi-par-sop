@@ -74,6 +74,57 @@ struct Node
 	}
 
 	/**
+	 * Construct node from an array of placements
+	 * Great for unpacking!
+	 * @param inputPlacement
+	 */
+	Node(int * inputPlacement)
+	{
+		init();
+
+		// We have to do this ourselves
+		for (int i = 0; i < a; i++)
+		{
+			sums[i] = 0;
+		}
+
+		bool startWasSet = false;
+		// For each number in inputSet
+		int i;
+		for (i = 0; i < n; i++)
+		{
+			int set = inputPlacement[i]; // set is 0..a or PLACE_NONE or PLACE_TOMBSTONE
+
+			placement[i] = set; // Copy it
+
+			// Tombstones and NONE shouldn't be calculated into the sums and total price
+			if (set == PLACE_TOMBSTONE)
+			{
+				continue;
+			}
+			if (set == PLACE_NONE)
+			{
+				if (!startWasSet) // set the start to the index of the first PLACE_NONE
+				{
+					start = i;
+					startWasSet = true;
+				}
+				continue;
+			}
+
+			int value = _inputSet[i];
+			sums[set] += value;
+			price += value;
+		}
+
+		// There's no PLACE_NONE in the input solution
+		if(!startWasSet)
+		{
+			start = i;
+		}
+	}
+
+	/**
 	 * Copy constructor
 	 * @param o
 	 */
@@ -120,6 +171,15 @@ struct Node
 	bool isFeasible(const int subset, const int number) const
 	{
 		return (sums[subset] + number) < c;
+	}
+
+	/**
+	 * Whether more nodes can be generated from this one
+	 * @return
+	 */
+	bool isFinished() const
+	{
+		return (start >= n);
 	}
 
 	/**
