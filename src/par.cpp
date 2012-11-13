@@ -50,6 +50,36 @@ void end()
 }
 
 /**
+ * Expand one level
+ * @param node Node to expand from
+ * @return number of generated nodes
+ */
+int expand(Node * node)
+{
+	int expanded = 0;
+	for (int i = node->start; i < n; ++i)
+	{
+		int add = _inputSet[i];
+		node->setTombstone(i); // Mark the current member as unused (will be overriden by Node::place)
+		node->start = i + 1; // ...and set the start to the next element
+
+		for (int subset = 0; subset < a; subset++)
+		{
+			// If the member can be added to the subset...
+			if (node->isFeasible(subset, add))
+			{
+				// Create new node with the member placed into the subset
+				Node * newNode = new Node(*node);
+				newNode->place(subset, i);
+				_stack.push(newNode->start, newNode);
+				expanded++;
+			}
+		}
+	}
+	return expanded;
+}
+
+/**
  * Main solve cycle
  */
 void doSolve()
@@ -136,12 +166,22 @@ void doSolve()
 		{
 			logc("! Found node with max price\n");
 			bcastNode(node, BETTER);
+			delete _currentBest;
 			end();
 		}
 
 		if (node->isBetterThan(_currentBest))
 		{
+			logc("> Found better solution, broadcasting\n");
+			delete _currentBest;
+			_currentBest = node;
+			bcastNode(node, BETTER);
+		}
 
+		int expanded = expand(node);
+		if (node != _currentBest)
+		{
+			delete node;
 		}
 	}
 // expanze stavu
@@ -219,36 +259,6 @@ bool loadSet(char * fname)
 	log("Upper bound is: %d\n", _upperBound);
 
 	return true;
-}
-
-/**
- * Expand one level
- * @param node Node to expand from
- * @return number of generated nodes
- */
-int expand(Node * node)
-{
-	int expanded = 0;
-	for (int i = node->start; i < n; ++i)
-	{
-		int add = _inputSet[i];
-		node->setTombstone(i); // Mark the current member as unused (will be overriden by Node::place)
-		node->start = i + 1; // ...and set the start to the next element
-
-		for (int subset = 0; subset < a; subset++)
-		{
-			// If the member can be added to the subset...
-			if (node->isFeasible(subset, add))
-			{
-				// Create new node with the member placed into the subset
-				Node * newNode = new Node(*node);
-				newNode->place(subset, i);
-				_stack.push(newNode->start, newNode);
-				expanded++;
-			}
-		}
-	}
-	return expanded;
 }
 
 void initFirstProc(char * fname)
