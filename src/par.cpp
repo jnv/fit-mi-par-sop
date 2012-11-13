@@ -22,6 +22,7 @@ using namespace std;
 int n = 0, c = 0, a = 0;
 int _upperBound = 0;
 int * _inputSet; // pole vstupnich dat
+ModifiedStack<Node> _stack;
 
 int _thisRank;
 int _procCnt;
@@ -110,6 +111,7 @@ bool loadSet(char * fname)
 	return true;
 }
 
+
 void initFirstProc(char * fname)
 {
 	if (!loadSet(fname))
@@ -121,12 +123,16 @@ void initFirstProc(char * fname)
 	int initArr[4] =
 	{ n, c, a, _upperBound };
 
+	// Broadcast initialization attributes
+	// initArr and _inputSet
 	for (int i = 1; i < _procCnt; i++) // 1 intentionally
 	{
 		MPI_Send(initArr, 4, MPI_INT, i, INIT_ARR, MPI_COMM_WORLD );
+		MPI_Send(_inputSet, n, MPI_INT, i, INIT_SET, MPI_COMM_WORLD );
 	}
 	log("> Sent initialization array: n %d, c %d, a %d, upperBound %d",
 			n, c, a, _upperBound);
+
 }
 
 void initOtherProc()
@@ -134,12 +140,18 @@ void initOtherProc()
 	int initArr[4];
 	MPI_Status status;
 	MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+
 	n = initArr[0];
 	c = initArr[1];
 	a = initArr[2];
 	_upperBound = initArr[3];
-	log("> Received initialization array: n %d, c %d, a %d, upperBound %d",
+	log("> Received initialization array: n %d, c %d, a %d, upperBound %d\n",
 			n, c, a, _upperBound);
+
+	_inputSet = new int[n];
+	MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,
+			&status);
+	log("> Received %d numbers for input set\n", n);
 }
 
 int main(int argc, char ** argv)
