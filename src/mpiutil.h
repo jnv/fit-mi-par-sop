@@ -60,6 +60,16 @@ bool probeEnd()
 	return false;
 }
 
+void bcastNode(Node * node, Tag tag = NODE)
+{
+	for (int i = 0; i < _procCnt; i++)
+	{
+		if (i == _thisRank)
+			continue;
+		sendNode(node, i, n, tag);
+	}
+}
+
 Node * rcvNode(int source, Tag tag)
 {
 	int * buffer = new int[n];

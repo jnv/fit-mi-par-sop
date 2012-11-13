@@ -25,6 +25,8 @@ ModifiedStack<Node> _stack;
 State _state;
 //deque<Node*> _stack;
 
+double solveStart, solveStop;
+
 int _thisRank;
 int _procCnt;
 
@@ -36,10 +38,12 @@ FILE* _logFile;
 void end()
 {
 	bcastEnd();
-	fclose(_logFile);
 
+	solveStop = MPI_Wtime();
+	log("| End. Total time: %f\n", solveStop - solveStart);
 	MPI_Finalize();
 
+	fclose(_logFile);
 	delete[] _inputSet;
 
 	exit(0);
@@ -70,7 +74,8 @@ void doSolve()
 				log("> Received BETTER from %d...\n", status.MPI_SOURCE);
 				Node * tmp;
 				tmp = rcvNode(status.MPI_SOURCE, BETTER);
-				if(tmp->isBetterThan(_currentBest))
+				log("%s\n", tmp->toString().c_str());
+				if (tmp->isBetterThan(_currentBest))
 				{
 					logc("Replacing our current best solution\n");
 					delete _currentBest;
@@ -80,6 +85,17 @@ void doSolve()
 				{
 					logc("Ignoring received solution\n");
 					delete tmp;
+				}
+
+				if (tmp->hasMaxPrice())
+				{
+					logc("! Received solution has max price\n");
+					if (_thisRank == INIT_PROC)
+					{
+						log("Received the best solution from %d:\n %s\n",
+								status.MPI_SOURCE, tmp->toString().c_str());
+					}
+					end();
 				}
 				break;
 			case WORK_REQ:
@@ -95,8 +111,9 @@ void doSolve()
 				// zkusit jiny proces
 				// a nebo se prepnout do pasivniho stavu a cekat na token
 				break;
-			case TOKEN:		//ukoncovaci token, prijmout a nasledne preposlat
-							// - bily nebo cerny v zavislosti na stavu procesu
+			case TOKEN:
+				//ukoncovaci token, prijmout a nasledne preposlat
+				// - bily nebo cerny v zavislosti na stavu procesu
 				break;
 			case END:
 				//konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
@@ -111,8 +128,23 @@ void doSolve()
 				break;
 			}
 		}
+		//endif(flag)
+
+		Node * node = _stack.pop();
+
+		if (node->hasMaxPrice())
+		{
+			logc("! Found node with max price\n");
+			bcastNode(node, BETTER);
+			end();
+		}
+
+		if (node->isBetterThan(_currentBest))
+		{
+
+		}
 	}
-	// expanze stavu
+// expanze stavu
 }
 
 bool loadSet(char * fname)
@@ -250,7 +282,7 @@ void initFirstProc(char * fname)
 	_currentBest = new Node();
 	Node * node = _currentBest;
 
-	// Expand first level
+// Expand first level
 	int expanded = expand(node);
 	int workLoad = expanded / _procCnt;
 	if (workLoad == 0)
@@ -265,7 +297,7 @@ void initFirstProc(char * fname)
 	logc("| Arrived at barrier before expansion\n");
 	MPI_Barrier(MPI_COMM_WORLD );
 
-	// For each processor...
+// For each processor...
 	for (int i = 1; i < _procCnt; i++)
 	{
 		sendInt(workLoad, i, INT); // Send the expected number of nodes
@@ -276,14 +308,14 @@ void initFirstProc(char * fname)
 	}
 	log("> Sent %d nodes to all processes\n", workLoad);
 
-	//_stack.push(0, new Node());
+//_stack.push(0, new Node());
 }
 
 void initOtherProc()
 {
 	int initArr[4];
 	MPI_Status status;
-	//MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+//MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
 	int pos = 0;
 	char buffer[MAX_LEN];
 
@@ -306,7 +338,7 @@ void initOtherProc()
 	fflush(_logFile);
 
 	_inputSet = new int[n];
-	//MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,&status);
+//MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,&status);
 	MPI_Unpack(buffer, MAX_LEN, &pos, _inputSet, n, MPI_INT, MPI_COMM_WORLD );
 	log("> Received %d numbers for input set: ", n);
 	for (int i = 0; i < n; i++)
@@ -343,7 +375,6 @@ void initOtherProc()
 
 int main(int argc, char ** argv)
 {
-	double start, stop;
 
 	MPI_Init(&argc, &argv); /* start up MPI */
 	MPI_Comm_rank(MPI_COMM_WORLD, &_thisRank);
@@ -370,11 +401,9 @@ int main(int argc, char ** argv)
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD );
-	start = MPI_Wtime();
-	log("| Solve started at %f\n", start);
-	//doSolve();
-	stop = MPI_Wtime();
-	log("| Finished. Total time: %f\n", stop - start);
+	solveStart = MPI_Wtime();
+	log("| Solve started at %f\n", solveStart);
+//doSolve();
 
 	end();
 	return 0;
