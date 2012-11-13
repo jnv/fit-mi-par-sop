@@ -67,6 +67,20 @@ void doSolve()
 			case BETTER:
 				// lepsi reseni
 				// porovnat s nasim _currentBest a bud prijmout, nebo zahodit
+				log("> Received BETTER from %d...\n", status.MPI_SOURCE);
+				Node * tmp;
+				tmp = rcvNode(status.MPI_SOURCE, BETTER);
+				if(tmp->isBetterThan(_currentBest))
+				{
+					logc("Replacing our current best solution\n");
+					delete _currentBest;
+					_currentBest = tmp;
+				}
+				else
+				{
+					logc("Ignoring received solution\n");
+					delete tmp;
+				}
 				break;
 			case WORK_REQ:
 				// zadost o praci, prijmout a dopovedet

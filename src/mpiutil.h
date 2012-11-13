@@ -60,4 +60,14 @@ bool probeEnd()
 	return false;
 }
 
+Node * rcvNode(int source, Tag tag)
+{
+	int * buffer = new int[n];
+	MPI_Status status;
+	MPI_Recv(buffer, n, MPI_INT, source, tag, MPI_COMM_WORLD, &status);
+	Node * node = new Node(buffer);
+	delete [] buffer;
+	return node;
+}
+
 #endif // MPIUTIL_H_
