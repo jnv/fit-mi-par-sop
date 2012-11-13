@@ -43,6 +43,12 @@ void end()
 	log("| End. Total time: %f\n", solveStop - solveStart);
 	MPI_Finalize();
 
+	if (_thisRank == INIT_PROC)
+	{
+		log("Best found solution:\n%s\n", _currentBest->toString().c_str());
+	}
+	delete _currentBest;
+
 	fclose(_logFile);
 	delete[] _inputSet;
 
@@ -110,6 +116,16 @@ void doSolve()
 					logc("Replacing our current best solution\n");
 					delete _currentBest;
 					_currentBest = tmp;
+					if (tmp->hasMaxPrice())
+					{
+						logc("! Received solution has max price\n");
+						if (_thisRank == INIT_PROC)
+						{
+							log("Received the best solution from %d\n",
+									status.MPI_SOURCE);
+						}
+						end();
+					}
 				}
 				else
 				{
@@ -117,16 +133,6 @@ void doSolve()
 					delete tmp;
 				}
 
-				if (tmp->hasMaxPrice())
-				{
-					logc("! Received solution has max price\n");
-					if (_thisRank == INIT_PROC)
-					{
-						log("Received the best solution from %d:\n %s\n",
-								status.MPI_SOURCE, tmp->toString().c_str());
-					}
-					end();
-				}
 				break;
 			case WORK_REQ:
 				// zadost o praci, prijmout a dopovedet
@@ -167,6 +173,7 @@ void doSolve()
 			logc("! Found node with max price\n");
 			bcastNode(node, BETTER);
 			delete _currentBest;
+			_currentBest = node;
 			end();
 		}
 
@@ -413,7 +420,7 @@ int main(int argc, char ** argv)
 	MPI_Barrier(MPI_COMM_WORLD );
 	solveStart = MPI_Wtime();
 	log("| Solve started at %f\n", solveStart);
-//doSolve();
+	doSolve();
 
 	end();
 	return 0;
