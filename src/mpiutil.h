@@ -12,7 +12,8 @@ extern int _procCnt;
 enum Tag
 {
 	END, INT, BETTER, WORK_IN, WORK_REQ, WORK_NONE,
-	INIT_ARR, INIT_SET
+	INIT_ARR, INIT_SET, INIT_PACK,
+	NODE
 };
 
 void sendNode(Node * node, int dest, Tag tag)

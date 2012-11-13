@@ -17,4 +17,7 @@ extern int * _inputSet;
 #define PLACE_NONE -1
 #define PLACE_TOMBSTONE -2
 
+#define MAX_N 1024
+#define MAX_LEN 1096
+
 #endif /* COMMON_H_ */

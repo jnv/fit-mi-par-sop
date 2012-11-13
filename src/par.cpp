@@ -75,6 +75,16 @@ bool loadSet(char * fname)
 	}
 #endif
 
+	// limit by number of bytes
+	// e.g. 1024 / 4 = 256
+	int limit = MAX_N / sizeof(int);
+	if (n > limit)
+	{
+		log("n must be lower than %d\n", limit);
+		f.close();
+		return false;
+	}
+
 	f >> c;
 	f >> a;
 #ifndef DEBUG
@@ -111,6 +121,9 @@ bool loadSet(char * fname)
 	return true;
 }
 
+void expand()
+{
+}
 
 void initFirstProc(char * fname)
 {
@@ -125,13 +138,22 @@ void initFirstProc(char * fname)
 
 	// Broadcast initialization attributes
 	// initArr and _inputSet
+
+	int pos = 0;
+	char buffer[MAX_LEN];
+	MPI_Pack(initArr, 4, MPI_INT, buffer, MAX_LEN, &pos, MPI_COMM_WORLD );
+	MPI_Pack(_inputSet, n, MPI_INT, buffer, MAX_LEN, &pos, MPI_COMM_WORLD );
+
 	for (int i = 1; i < _procCnt; i++) // 1 intentionally
 	{
-		MPI_Send(initArr, 4, MPI_INT, i, INIT_ARR, MPI_COMM_WORLD );
-		MPI_Send(_inputSet, n, MPI_INT, i, INIT_SET, MPI_COMM_WORLD );
+		MPI_Send(buffer, pos, MPI_PACKED, i, INIT_PACK, MPI_COMM_WORLD );
+		//MPI_Send(initArr, 4, MPI_INT, i, INIT_ARR, MPI_COMM_WORLD );
+		//MPI_Send(_inputSet, n, MPI_INT, i, INIT_SET, MPI_COMM_WORLD );
 	}
 	log("> Sent initialization array: n %d, c %d, a %d, upperBound %d",
 			n, c, a, _upperBound);
+
+	//_stack.push(0, new Node());
 
 }
 
@@ -139,8 +161,14 @@ void initOtherProc()
 {
 	int initArr[4];
 	MPI_Status status;
-	MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+	//MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+	int pos = 0;
+	char buffer[MAX_LEN];
 
+	MPI_Recv(buffer, MAX_LEN, MPI_PACKED, INIT_PROC, INIT_PACK, MPI_COMM_WORLD,
+			&status);
+
+	MPI_Unpack(buffer, MAX_LEN, &pos, initArr, 4, MPI_INT, MPI_COMM_WORLD );
 	n = initArr[0];
 	c = initArr[1];
 	a = initArr[2];
@@ -149,9 +177,14 @@ void initOtherProc()
 			n, c, a, _upperBound);
 
 	_inputSet = new int[n];
-	MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,
-			&status);
-	log("> Received %d numbers for input set\n", n);
+	//MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,&status);
+	MPI_Unpack(buffer, MAX_LEN, &pos, _inputSet, n, MPI_INT, MPI_COMM_WORLD );
+	log("> Received %d numbers for input set: ", n);
+	for(int i = 0; i < n; i++)
+	{
+		log(" %d", _inputSet[i]);
+	}
+	logc("\n");
 }
 
 int main(int argc, char ** argv)
