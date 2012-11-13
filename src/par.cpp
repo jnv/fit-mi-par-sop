@@ -280,7 +280,7 @@ int main(int argc, char ** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &_procCnt);
 
 	char logFileName[20];
-	sprintf(logFileName, "logs/log-%d-%d.log", _thisRank, _procCnt);
+	sprintf(logFileName, "logs/%d-%d.log", _procCnt, _thisRank);
 	_logFile = fopen(logFileName, "w");
 
 	log("Proc %d out of %d\n", _thisRank, _procCnt);
