@@ -43,7 +43,7 @@ public:
 	{
 		top = 0;
 		size = 0;
-		bcount = NULL;
+		bcount = 0;
 		bottom = NULL;
 	}
 
