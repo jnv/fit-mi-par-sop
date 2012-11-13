@@ -190,7 +190,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.737289434" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.exe.debug" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.201353511" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/par/Par Debug}" id="cdt.managedbuild.target.gnu.builder.exe.debug.549313698" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/par/Par Debug}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.exe.debug.549313698" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1728085538" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="mpic++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.289637999" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.809881135" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -199,7 +199,7 @@
 									<listOptionValue builtIn="false" value="/usr/lib/openmpi/include/"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.213544976" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.other.other.83242082" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c99" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.83242082" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c99" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2042958504" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="mpicc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1585612804" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -274,10 +274,10 @@
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655;cdt.managedbuild.config.gnu.exe.debug.620946655.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.773152008;cdt.managedbuild.tool.gnu.c.compiler.input.1547813433">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1585612804;cdt.managedbuild.tool.gnu.c.compiler.input.1512732837">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1585612804;cdt.managedbuild.tool.gnu.c.compiler.input.1512732837">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655;cdt.managedbuild.config.gnu.exe.debug.620946655.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.773152008;cdt.managedbuild.tool.gnu.c.compiler.input.1547813433">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655;cdt.managedbuild.config.gnu.exe.debug.620946655.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1091379642;cdt.managedbuild.tool.gnu.cpp.compiler.input.1344886732">
@@ -286,10 +286,10 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.289637999;cdt.managedbuild.tool.gnu.cpp.compiler.input.2042958504">
 			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.198778912;cdt.managedbuild.config.gnu.exe.release.198778912.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.1931892095;cdt.managedbuild.tool.gnu.c.compiler.input.1032362890">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1613667303;cdt.managedbuild.tool.gnu.c.compiler.input.251094366">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1613667303;cdt.managedbuild.tool.gnu.c.compiler.input.251094366">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.198778912;cdt.managedbuild.config.gnu.exe.release.198778912.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.1931892095;cdt.managedbuild.tool.gnu.c.compiler.input.1032362890">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138;cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2009388313;cdt.managedbuild.tool.gnu.cpp.compiler.input.1294692454">
