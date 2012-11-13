@@ -171,7 +171,7 @@ void doSolve()
 			logc("Going to IDLE state\n");
 			_state = IDLE;
 			killcount++;
-			if( (_thisRank != INIT_PROC) && (killcount > 100) )
+			if ((_thisRank != INIT_PROC) && (killcount > 100))
 			{
 				logc("Idling for too long, exiting");
 				end();
@@ -179,6 +179,8 @@ void doSolve()
 
 			continue;
 		}
+
+		/***** Handle the node from stack here: *****/
 		node = _stack.pop();
 
 		if (node->hasMaxPrice())
@@ -199,10 +201,7 @@ void doSolve()
 			bcastNode(node, BETTER);
 		}
 
-		if (node)
-		{
-			int expanded = expand(node);
-		}
+		int expanded = expand(node);
 		if (node != _currentBest)
 		{
 			delete node;
