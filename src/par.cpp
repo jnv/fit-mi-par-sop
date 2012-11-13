@@ -12,8 +12,8 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "common.h"
 #include "mpiutil.h"
+#include "common.h"
 #include "Node.h"
 #include "ModifiedStack.h"
 using namespace std;

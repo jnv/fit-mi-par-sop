@@ -1,9 +1,5 @@
-/*
- * Node.h
- *
- *  Created on: 9.11.2012
- *      Author: j
- */
+#ifndef NODE_H_
+#define NODE_H_
 
 #include <cstdlib>
 #include <iostream>
@@ -13,12 +9,10 @@
 #include <sstream>
 #include <iomanip>
 #include "common.h"
-using namespace std;
-
-#ifndef NODE_H_
-#define NODE_H_
 
 //#define TWOLINE //two-line output
+
+using namespace std;
 
 struct Node
 {
