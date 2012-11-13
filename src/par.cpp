@@ -37,8 +37,6 @@ FILE* _logFile;
 #define LOG_OUTPUT _logFile // cerr
 void end()
 {
-	bcastEnd();
-
 	solveStop = MPI_Wtime();
 	log("| End. Total time: %f\n", solveStop - solveStart);
 	MPI_Finalize();
@@ -93,8 +91,9 @@ void doSolve()
 	_state = ACTIVE;
 	int flag;
 	MPI_Status status;
+	int killcount;
 
-	while (!_stack.isEmpty())
+	while (true)
 	{
 		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
 		if (flag)
@@ -123,6 +122,7 @@ void doSolve()
 						{
 							log("Received the best solution from %d\n",
 									status.MPI_SOURCE);
+							bcastEnd();
 						}
 						end();
 					}
@@ -163,10 +163,23 @@ void doSolve()
 				log("< Received unknown tag: %d", status.MPI_TAG);
 				break;
 			}
-		}
-		//endif(flag)
+		} //endif(flag)
 
-		Node * node = _stack.pop();
+		Node * node = NULL;
+		if (_stack.isEmpty())
+		{
+			logc("Going to IDLE state\n");
+			_state = IDLE;
+			killcount++;
+			if( (_thisRank != INIT_PROC) && (killcount > 100) )
+			{
+				logc("Idling for too long, exiting");
+				end();
+			}
+
+			continue;
+		}
+		node = _stack.pop();
 
 		if (node->hasMaxPrice())
 		{
@@ -180,12 +193,16 @@ void doSolve()
 		if (node->isBetterThan(_currentBest))
 		{
 			logc("> Found better solution, broadcasting\n");
+			log("%s\n", node->toString().c_str());
 			delete _currentBest;
 			_currentBest = node;
 			bcastNode(node, BETTER);
 		}
 
-		int expanded = expand(node);
+		if (node)
+		{
+			int expanded = expand(node);
+		}
 		if (node != _currentBest)
 		{
 			delete node;
@@ -273,6 +290,7 @@ void initFirstProc(char * fname)
 	if (!loadSet(fname))
 	{
 		logc("Failed to load input file, exiting\n");
+		bcastEnd();
 		end();
 	}
 
@@ -308,6 +326,7 @@ void initFirstProc(char * fname)
 				_stack.getSize());
 		bcastEnd();
 		MPI_Barrier(MPI_COMM_WORLD );
+		bcastEnd();
 		end();
 	}
 
@@ -408,6 +427,7 @@ int main(int argc, char ** argv)
 		if (argc != 2)
 		{
 			cout << "Usage: par <file>" << endl;
+			bcastEnd();
 			end();
 		}
 		initFirstProc(argv[1]);
@@ -422,8 +442,8 @@ int main(int argc, char ** argv)
 	log("| Solve started at %f\n", solveStart);
 	doSolve();
 
-	end();
-	return 0;
+	logc("Ending in main. This shouldn't happen...");
+	return 1;
 
 }
 
