@@ -41,10 +41,10 @@ void end()
 	log("| End. Total time: %f\n", solveStop - solveStart);
 	MPI_Finalize();
 
-	if (_thisRank == INIT_PROC)
-	{
-		log("Best found solution:\n%s\n", _currentBest->toString().c_str());
-	}
+	//if (isInitProc())
+	//{
+	log("Best found solution:\n%s\n", _currentBest->toString().c_str());
+	//}
 	delete _currentBest;
 
 	fclose(_logFile);
@@ -118,7 +118,7 @@ void doSolve()
 					if (tmp->hasMaxPrice())
 					{
 						logc("! Received solution has max price\n");
-						if (_thisRank == INIT_PROC)
+						if (isInitProc())
 						{
 							log("Received the best solution from %d\n",
 									status.MPI_SOURCE);
@@ -421,7 +421,7 @@ int main(int argc, char ** argv)
 
 	log("Proc %d out of %d\n", _thisRank, _procCnt);
 
-	if (_thisRank == 0)
+	if (isInitProc())
 	{
 		if (argc != 2)
 		{
