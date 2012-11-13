@@ -91,7 +91,7 @@ void doSolve()
 	_state = ACTIVE;
 	int flag;
 	MPI_Status status;
-	int killcount;
+	bool tokenSent = false;
 
 	while (true)
 	{
@@ -168,14 +168,8 @@ void doSolve()
 		Node * node = NULL;
 		if (_stack.isEmpty())
 		{
-			logc("Going to IDLE state\n");
+			logc("| Stack empty. Going to IDLE state\n");
 			_state = IDLE;
-			killcount++;
-			if ((_thisRank != INIT_PROC) && (killcount > 100))
-			{
-				logc("Idling for too long, exiting");
-				end();
-			}
 
 			continue;
 		}
