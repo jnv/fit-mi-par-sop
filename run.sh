@@ -1,3 +1,3 @@
 #!/bin/sh
 
-qrun.sh 4c 2 fast parallel_job.sh
+qrun.sh 4c 8 fast parallel_job.sh
