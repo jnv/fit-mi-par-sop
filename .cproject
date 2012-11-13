@@ -199,6 +199,7 @@
 									<listOptionValue builtIn="false" value="/usr/lib/openmpi/include/"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.213544976" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.other.83242082" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c99" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2042958504" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="mpicc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1585612804" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -224,9 +225,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.620946655.915413138.456221206.851767589" name="par.cpp" rcbsApplicability="disable" resourcePath="src/par.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.289637999.117048627">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.289637999.117048627" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.289637999"/>
-					</fileInfo>
 					<sourceEntries>
 						<entry excluding="logger/main.cpp|sekv.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
