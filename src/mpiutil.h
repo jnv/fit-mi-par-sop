@@ -18,10 +18,9 @@ enum Tag
 	WORK_IN,
 	WORK_REQ,
 	WORK_NONE,
-	INIT_ARR,
-	INIT_SET,
 	INIT_PACK,
-	NODE
+	NODE,
+	TOKEN
 };
 
 void sendNode(Node * node, int dest, int size, Tag tag = NODE)

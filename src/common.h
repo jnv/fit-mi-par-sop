@@ -27,4 +27,6 @@ extern FILE* _logFile;
 #define log(fmt, ...) \
         do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); fflush(LOG_OUTPUT); } while (0)
 
+enum State {IDLE, ACTIVE}
+
 #endif /* COMMON_H_ */
