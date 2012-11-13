@@ -175,8 +175,34 @@ bool loadSet(char * fname)
 	return true;
 }
 
-void expand()
+/**
+ * Expand one level
+ * @param node Node to expand from
+ * @return number of generated nodes
+ */
+int expand(Node * node)
 {
+	int expanded = 0;
+	for (int i = node->start; i < n; ++i)
+	{
+		int add = _inputSet[i];
+		node->setTombstone(i); // Mark the current member as unused (will be overriden by Node::place)
+		node->start = i + 1; // ...and set the start to the next element
+
+		for (int subset = 0; subset < a; subset++)
+		{
+			// If the member can be added to the subset...
+			if (node->isFeasible(subset, add))
+			{
+				// Create new node with the member placed into the subset
+				Node * newNode = new Node(*node);
+				newNode->place(subset, i);
+				_stack.push(newNode->start, newNode);
+				expanded++;
+			}
+		}
+	}
+	return expanded;
 }
 
 void initFirstProc(char * fname)
@@ -210,26 +236,9 @@ void initFirstProc(char * fname)
 	_currentBest = new Node();
 	Node * node = _currentBest;
 
-// Expand first level
-	for (int i = node->start; i < n; ++i)
-	{
-		int add = _inputSet[i];
-		node->setTombstone(i); // Mark the current member as unused (will be overriden by Node::place)
-		node->start = i + 1; // ...and set the start to the next element
-
-		for (int subset = 0; subset < a; subset++)
-		{
-			// If the member can be added to the subset...
-			if (node->isFeasible(subset, add))
-			{
-				// Create new node with the member placed into the subset
-				Node * newNode = new Node(*node);
-				newNode->place(subset, i);
-				_stack.push(newNode->start, newNode);
-			}
-		}
-	}
-	int workLoad = _stack.getSize() / _procCnt;
+	// Expand first level
+	int expanded = expand(node);
+	int workLoad = expanded / _procCnt;
 	if (workLoad == 0)
 	{
 		log("Stack size after first expansion was %d, aborting\n",
@@ -242,7 +251,7 @@ void initFirstProc(char * fname)
 	logc("| Arrived at barrier before expansion\n");
 	MPI_Barrier(MPI_COMM_WORLD );
 
-// For each processor...
+	// For each processor...
 	for (int i = 1; i < _procCnt; i++)
 	{
 		sendInt(workLoad, i, INT); // Send the expected number of nodes
@@ -253,15 +262,14 @@ void initFirstProc(char * fname)
 	}
 	log("> Sent %d nodes to all processes\n", workLoad);
 
-//_stack.push(0, new Node());
-
+	//_stack.push(0, new Node());
 }
 
 void initOtherProc()
 {
 	int initArr[4];
 	MPI_Status status;
-//MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+	//MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
 	int pos = 0;
 	char buffer[MAX_LEN];
 
@@ -284,7 +292,7 @@ void initOtherProc()
 	fflush(_logFile);
 
 	_inputSet = new int[n];
-//MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,&status);
+	//MPI_Recv(_inputSet, n, MPI_INT, INIT_PROC, INIT_SET, MPI_COMM_WORLD,&status);
 	MPI_Unpack(buffer, MAX_LEN, &pos, _inputSet, n, MPI_INT, MPI_COMM_WORLD );
 	log("> Received %d numbers for input set: ", n);
 	for (int i = 0; i < n; i++)
@@ -333,8 +341,6 @@ int main(int argc, char ** argv)
 
 	log("Proc %d out of %d\n", _thisRank, _procCnt);
 
-//_currentBest = new Node();
-
 	if (_thisRank == 0)
 	{
 		if (argc != 2)
@@ -352,11 +358,9 @@ int main(int argc, char ** argv)
 	MPI_Barrier(MPI_COMM_WORLD );
 	start = MPI_Wtime();
 	log("| Solve started at %f\n", start);
-//doSolve();
+	//doSolve();
 	stop = MPI_Wtime();
 	log("| Finished. Total time: %f\n", stop - start);
-
-//cout << "Solve time: " << stop - start << endl;
 
 	end();
 	return 0;
