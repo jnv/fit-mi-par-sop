@@ -11,11 +11,11 @@ public:
 	T * content;
 	int level;
 
-	StackNode(StackNode *next, int level, T * content)
+	StackNode(StackNode *inext, int ilevel, T * icontent)
 	{
-		this->next = next;
-		this->level = level;
-		this->content = content;
+		next = inext;
+		level = ilevel;
+		content = icontent;
 		prev = 0;
 	}
 };
@@ -43,8 +43,8 @@ public:
 	{
 		top = 0;
 		size = 0;
-		bcount = 0;
-		bottom = NULL;
+		//bcount = 0;
+		//bottom = 0;
 	}
 
 	bool isEmpty() const
@@ -116,7 +116,7 @@ public:
 		return out;
 	}
 
-	T* bop()
+	T* pop_front()
 	{
 		if (0 == bottom)
 		{
@@ -139,7 +139,7 @@ public:
 
 	ModifiedStack<T>* cut()
 	{
-		StackNode<T> *pom = new StackNode<T>(0, 1, this->bop());
+		StackNode<T> *pom = new StackNode<T>(0, 1, this->pop_front());
 		return 0;
 	}
 
