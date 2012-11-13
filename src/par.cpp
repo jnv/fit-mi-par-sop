@@ -16,6 +16,7 @@
 #include "common.h"
 #include "mpiutil.h"
 #include "Node.h"
+#include "ModifiedStack.h"
 using namespace std;
 
 int n = 0, c = 0, a = 0;
@@ -28,10 +29,21 @@ int _procCnt;
 FILE* _logFile;
 
 #define LOG_OUTPUT _logFile // cerr
-
 // http://stackoverflow.com/questions/1644868/c-define-macro-for-debug-printing
+#define logc(fmt) \
+		do { fprintf(LOG_OUTPUT, fmt); } while (0)
 #define log(fmt, ...) \
-            do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); } while (0)
+        do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); } while (0)
+
+void end()
+{
+	bcastEnd();
+	fclose(_logFile);
+
+	MPI_Finalize();
+
+	exit(0);
+}
 
 /**
  * Main solve cycle
@@ -48,7 +60,7 @@ bool loadSet(char * fname)
 
 	if (!f.is_open())
 	{
-		cout << "Cannot open input file: " << fname << endl;
+		log("Cannot open input file: %s\n", fname);
 		return false;
 	}
 
@@ -56,7 +68,7 @@ bool loadSet(char * fname)
 #ifndef DEBUG
 	if(n < 20)
 	{
-		cout << "n must be 20 or more";
+		log("n must be 20 or more\n");
 		f.close();
 		return false;
 	}
@@ -67,18 +79,17 @@ bool loadSet(char * fname)
 #ifndef DEBUG
 	if(a < 2 || a > n / 10)
 	{
-		cout << "a must be more than 1 and less than n/10.";
+		log("a must be more than 1 and less than n/10.\n");
 		f.close();
 		return 0;
 	}
 #endif
 
-	cout << "c (max price per subset): " << c << endl
-			<< "a (number of subsets): " << a << endl;
+	log("c (max price per subset): %d\n  a (number of subsets): %d\n", c, a);
 
 	_inputSet = new int[n];
 
-	cout << "Loading " << n << " numbers" << endl;
+	log("Loading %d numbers\n", n);
 
 	for (int i = 0; i < n; i++)
 	{
@@ -87,27 +98,48 @@ bool loadSet(char * fname)
 		_inputSet[i] = in;
 	}
 
-	cout << "Loaded: ";
 	for (int i = 0; i < n; i++)
 	{
-		cout << _inputSet[i] << " ";
+		log("%d ", _inputSet[i]);
 	}
-	cout << endl;
+	logc("\n");
 
 	_upperBound = a * (c - 1);
-	cout << "Upper bound is: " << _upperBound << endl;
+	log("Upper bound is: %d\n", _upperBound);
 
 	return true;
 }
 
 void initFirstProc(char * fname)
 {
+	if (!loadSet(fname))
+	{
+		logc("Failed to load input file, exiting\n");
+		end();
+	}
 
+	int initArr[4] =
+	{ n, c, a, _upperBound };
+
+	for (int i = 1; i < _procCnt; i++) // 1 intentionally
+	{
+		MPI_Send(initArr, 4, MPI_INT, i, INIT_ARR, MPI_COMM_WORLD );
+	}
+	log("> Sent initialization array: n %d, c %d, a %d, upperBound %d",
+			n, c, a, _upperBound);
 }
 
 void initOtherProc()
 {
-
+	int initArr[4];
+	MPI_Status status;
+	MPI_Recv(initArr, 4, MPI_INT, INIT_PROC, INIT_ARR, MPI_COMM_WORLD, &status);
+	n = initArr[0];
+	c = initArr[1];
+	a = initArr[2];
+	_upperBound = initArr[3];
+	log("> Received initialization array: n %d, c %d, a %d, upperBound %d",
+			n, c, a, _upperBound);
 }
 
 int main(int argc, char ** argv)
@@ -126,22 +158,16 @@ int main(int argc, char ** argv)
 
 	if (_thisRank == 0)
 	{
+		if (argc != 2)
+		{
+			cout << "Usage: par <file>" << endl;
+			end();
+		}
 		initFirstProc(argv[1]);
 	}
 	else
 	{
 		initOtherProc();
-	}
-
-	if (argc != 2)
-	{
-		cout << "Usage: par <file>" << endl;
-		return 0;
-	}
-
-	if (!loadSet(argv[1]))
-	{
-		return 1;
 	}
 
 	start = MPI_Wtime();
@@ -151,8 +177,7 @@ int main(int argc, char ** argv)
 
 	//cout << "Solve time: " << stop - start << endl;
 
-	fclose(_logFile);
-
+	end();
 	return 0;
 
 }
