@@ -5,11 +5,6 @@
 #ifndef MPIUTIL_H_
 #define MPIUTIL_H_
 
-#define INIT_PROC 0
-
-extern int _thisRank;
-extern int _procCnt;
-
 enum Tag
 {
 	END,
