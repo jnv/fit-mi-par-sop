@@ -420,7 +420,7 @@ void doSolve()
 			}
 			else
 			{
-#if DEBUG
+#if VERBOSE
 				logc("I\n");
 #endif
 			}
@@ -479,7 +479,7 @@ void doSolve()
 		{
 			delete node;
 		}
-#if DEBUG
+#if VERBOSE
 		logc("A\n");
 #endif
 	}

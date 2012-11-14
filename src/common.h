@@ -7,6 +7,10 @@
 #define DEBUG 1
 #endif
 
+#ifndef VERBOSE
+#define VERBOSE 0
+#endif
+
 #define PLACE_NONE -1
 #define PLACE_TOMBSTONE -2
 
