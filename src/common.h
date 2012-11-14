@@ -30,4 +30,6 @@ extern FILE* _logFile;
 
 enum State {IDLE, ACTIVE};
 
+enum TokenColor {WHITE, BLACK};
+
 #endif /* COMMON_H_ */

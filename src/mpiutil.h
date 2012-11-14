@@ -16,6 +16,8 @@ enum Tag
 	INIT_PACK,
 	NODE,
 	TOKEN
+	//TOKEN_BLACK,
+	//TOKEN_WHITE
 };
 
 void sendNode(Node * node, int dest, int size, Tag tag = NODE)
@@ -42,6 +44,22 @@ void bcastInt(int in, Tag tag)
 void bcastEnd()
 {
 	bcastInt(1, END);
+}
+
+void sendToken(TokenColor color)
+{
+	Tag tag;
+	/*if(color == BLACK)
+	{
+		tag = TOKEN_BLACK;
+	}
+	else
+	{
+		tag = TOKEN_WHITE;
+	}*/
+	int target = (_thisRank + 1) % _procCnt;
+	//sendInt(_thisRank, target, tag);
+	sendInt(color, target, TOKEN);
 }
 
 bool probeEnd()

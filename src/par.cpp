@@ -92,6 +92,8 @@ void doSolve()
 	int flag;
 	MPI_Status status;
 	bool tokenSent = false;
+	TokenColor color = WHITE;
+	int donor = 0;
 
 	while (true)
 	{
@@ -168,8 +170,22 @@ void doSolve()
 		Node * node = NULL;
 		if (_stack.isEmpty())
 		{
-			logc("| Stack empty. Going to IDLE state\n");
-			_state = IDLE;
+			if (_state != IDLE)
+			{
+				logc("| Stack empty. Going to IDLE state\n");
+				_state = IDLE;
+			}
+			else
+			{
+				logc("I\n");
+			}
+
+			if (isInitProc() && !tokenSent)
+			{
+				logc("< Sending initial WHITE token\n");
+				tokenSent = true;
+				sendToken(WHITE);
+			}
 
 			continue;
 		}
