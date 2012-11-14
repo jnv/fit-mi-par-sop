@@ -2,6 +2,6 @@
 SSH_HOST=vlnasjan@star.fit.cvut.cz
 
 ssh $SSH_HOST <<'ENDSSH'
-cd par/logs
+cd /mnt/data/$USER
 less *.log
 ENDSSH
