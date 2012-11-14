@@ -501,7 +501,7 @@ bool loadSet(char * fname)
 #if !DEBUG
 	if(n < 20)
 	{
-		cout << "n must be 20 or more << endl;
+		cout << "n must be 20 or more" << endl;
 		f.close();
 		return false;
 	}
