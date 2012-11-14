@@ -1,5 +1,6 @@
+DEBUG=0
 CC=mpiCC
-CFLAGS=-Wall -Wno-long-long -pedantic -ansi -O3 -ggdb
+CFLAGS=-Wall -Wno-long-long -pedantic -ansi -O3 -ggdb -D DEBUG=$DEBUG
 LDFLAGS=
 SOURCES:=$(wildcard src/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)

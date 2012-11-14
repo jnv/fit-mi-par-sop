@@ -3,7 +3,9 @@
 
 #include <string>
 
+#ifndef DEBUG
 #define DEBUG 1
+#endif
 
 #define PLACE_NONE -1
 #define PLACE_TOMBSTONE -2

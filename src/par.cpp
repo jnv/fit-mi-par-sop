@@ -420,7 +420,7 @@ void doSolve()
 			}
 			else
 			{
-#ifdef DEBUG
+#if DEBUG
 				logc("I\n");
 #endif
 			}
@@ -479,7 +479,7 @@ void doSolve()
 		{
 			delete node;
 		}
-#ifdef DEBUG
+#if DEBUG
 		logc("A\n");
 #endif
 	}
@@ -498,10 +498,10 @@ bool loadSet(char * fname)
 	}
 
 	f >> n;
-#ifndef DEBUG
+#if !DEBUG
 	if(n < 20)
 	{
-		log("n must be 20 or more\n");
+		logc("n must be 20 or more\n");
 		f.close();
 		return false;
 	}
@@ -526,10 +526,10 @@ bool loadSet(char * fname)
 
 	f >> c;
 	f >> a;
-#ifndef DEBUG
+#if !DEBUG
 	if(a < 2 || a > n / 10)
 	{
-		log("a must be more than 1 and less than n/10.\n");
+		logc("a must be more than 1 and less than n/10.\n");
 		f.close();
 		return 0;
 	}
