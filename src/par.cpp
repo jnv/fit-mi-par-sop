@@ -192,12 +192,14 @@ void doSolve()
 	int workReqCtr = 0;
 	int initialDonor = donor;
 
+	int checkMsgAmount = CHECK_MSG_AMOUNT; // Variable so we can probe more often when IDLE
+
 	log("Initial donor will be: %d\n", donor);
 
 	while (true)
 	{
 		checkCtr++;
-		if ((checkCtr % CHECK_MSG_AMOUNT) == 0)
+		if ((checkCtr % checkMsgAmount) == 0)
 		//if(true)
 		{
 			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag,
@@ -368,6 +370,7 @@ void doSolve()
 					//mam-li reseni, odeslu procesu 0
 					//nasledne ukoncim spoji cinnost
 					//jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
+
 					end();
 					break;
 				default:
@@ -416,11 +419,14 @@ void doSolve()
 				workRequested = true;
 			}
 
+			checkMsgAmount = 1;
+
 			continue;
 		}
 		else if (_state != ACTIVE)
 		{
 			_state = ACTIVE;
+			checkMsgAmount = CHECK_MSG_AMOUNT;
 			logc("| Coming to ACTIVE state\n");
 		}
 

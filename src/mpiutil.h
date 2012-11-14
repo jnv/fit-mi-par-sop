@@ -7,9 +7,16 @@
 
 enum Tag
 {
-	END, INT, BETTER, WORK_IN, WORK_REQ, WORK_NONE, INIT_PACK, NODE, TOKEN
-//TOKEN_BLACK,
-//TOKEN_WHITE
+
+	WORK_REQ = 1000,
+	WORK_IN = 1001,
+	WORK_NONE = 1002,
+	TOKEN = 1003,
+	INT = 1004,
+	BETTER = 1005,
+	END = 1006,
+	NODE = 1007,
+	INIT_PACK = 1008
 };
 
 void sendNode(Node * node, int dest, int size, Tag tag = NODE)
