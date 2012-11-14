@@ -156,16 +156,6 @@ void doSolve()
 				incColor = rcvToken(status.MPI_SOURCE);
 				hasToken = true;
 
-				if (ourColor == BLACK)
-				{
-					logc("Recoloring token to BLACK\n");
-					sendColor = BLACK;
-				}
-				else
-				{
-					sendColor = WHITE;
-				}
-
 				if (incColor == WHITE)
 				{
 					logc("> WHITE token\n");
@@ -175,16 +165,35 @@ void doSolve()
 						bcastEnd();
 						end();
 					}
+
+					if (ourColor == BLACK)
+					{
+						logc("Recoloring token to BLACK\n");
+						sendColor = BLACK;
+					}
+					else
+					{
+						sendColor = WHITE;
+					}
 				}
 				else if (incColor == BLACK) // BLACK
 				{
-					logc("> BLACK token\n");
+					if (isInitProc())
+					{
+						initTokenSent = false;
+					}
+					else
+					{
+						logc("> BLACK token\n");
+						sendColor = BLACK; // Always send black, no matter what our color is
+					}
 				}
 				else
 				{
 					cerr << "WUT?" << endl;
 					exit(2);
 				}
+
 				break;
 			case END:
 				//konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
@@ -202,10 +211,11 @@ void doSolve()
 
 		Node * node = NULL;
 
-		if (hasToken)
+		if (!isInitProc() && hasToken) // InitProc sends token only when going to Idle
 		{
 			ourColor = WHITE;
 			hasToken = false;
+
 			log("< Sending %s token\n", COLORS[sendColor].c_str());
 			sendToken(sendColor);
 		}
