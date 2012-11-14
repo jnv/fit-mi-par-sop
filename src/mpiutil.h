@@ -39,15 +39,6 @@ void bcastEnd()
 
 void sendToken(TokenColor color)
 {
-	Tag tag;
-	/*if(color == BLACK)
-	 {
-	 tag = TOKEN_BLACK;
-	 }
-	 else
-	 {
-	 tag = TOKEN_WHITE;
-	 }*/
 	int target = (_thisRank + 1) % _procCnt;
 	//sendInt(_thisRank, target, tag);
 	sendInt(color, target, TOKEN);
@@ -73,7 +64,7 @@ bool probeEnd()
 	return false;
 }
 
-void bcastNode(Node * node, Tag tag = NODE)
+void bcastNode(Node * node, Tag tag = NODE, bool async = false)
 {
 	for (int i = 0; i < _procCnt; i++)
 	{

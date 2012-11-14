@@ -1,6 +1,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <string>
+
 #define DEBUG 1
 
 #define PLACE_NONE -1
@@ -30,6 +32,8 @@ extern FILE* _logFile;
 
 enum State {IDLE, ACTIVE};
 
-enum TokenColor {WHITE, BLACK};
+enum TokenColor {WHITE = 0, BLACK = 1};
+
+std::string COLORS[] = {"WHITE", "BLACK"};
 
 #endif /* COMMON_H_ */

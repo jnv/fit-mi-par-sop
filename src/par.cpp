@@ -206,6 +206,7 @@ void doSolve()
 		{
 			ourColor = WHITE;
 			hasToken = false;
+			log("< Sending %s token\n", COLORS[sendColor].c_str());
 			sendToken(sendColor);
 		}
 
