@@ -53,6 +53,11 @@ TokenColor rcvToken(int from)
 	return color;
 }
 
+void sendWorkReq(int dst)
+{
+	sendInt(_thisRank, dst, WORK_REQ);
+}
+
 bool probeEnd()
 {
 	int flag;
@@ -82,6 +87,13 @@ Node * rcvNode(int source, Tag tag)
 	Node * node = new Node(buffer);
 	delete[] buffer;
 	return node;
+}
+
+void dropMsg(int source, Tag tag)
+{
+	int content; /* vybereme z fronty */
+	MPI_Status status;
+	MPI_Recv(&content, 1, MPI_INT, source, tag, MPI_COMM_WORLD, &status);
 }
 
 #endif // MPIUTIL_H_

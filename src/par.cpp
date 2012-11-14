@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <set>
 #include "mpiutil.h"
 #include "common.h"
 #include "Node.h"
@@ -83,6 +84,90 @@ int expand(Node * node)
 	return expanded;
 }
 
+bool handleWorkReq()
+{
+	int flag = 1, k = 0;
+	//bool reqProcs[32] =	{ false };
+	set<int> reqProcs;
+	set<int>::iterator it;
+	MPI_Status status;
+
+	bool ret = false;
+	// collect all work requests
+	while (flag)
+	{
+		int reqProc;
+		MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE, WORK_REQ,
+				MPI_COMM_WORLD, &status);
+		reqProcs.insert(reqProc);
+
+		MPI_Iprobe(MPI_ANY_SOURCE, WORK_REQ, MPI_COMM_WORLD, &flag, &status);
+	}
+
+	k = (int) reqProcs.size();
+	log("Total work requests: %d\n", k);
+
+	//int workReqPerProc = 0;
+	//int workPerProc = _stack.getSize() / 2;
+
+	int cnt;
+	// For each requesting processor...
+	for (it = reqProcs.begin(); it != reqProcs.end(); it++)
+	{
+		int requestingProc = *it;
+		int remains = _stack.getSize() - _stack.getBcount();
+		log("Bottom count: %d, remains: %d", _stack.getBcount(), remains);
+
+		cnt = _stack.getBcount();
+		if (remains <= 2 * CUT_LEVEL)
+		{
+			cnt /= 2;
+		}
+
+		if (cnt == 0)
+		{
+			log("< Sorry punk %d, no work for ya\n", requestingProc);
+			sendInt(_thisRank, requestingProc, WORK_NONE);
+			reqProcs.erase(it);
+			k--;
+		}
+	}
+
+	for (it = reqProcs.begin(); it != reqProcs.end(); it++)
+	{
+		int requestingProc = *it;
+		log("< Sending %d nodes to %d\n", cnt, requestingProc);
+
+		sendInt(cnt, requestingProc, WORK_IN);
+		for (int i; i < cnt; i++)
+		{
+			Node * node = _stack.pop_front();
+			sendNode(node, requestingProc, n, WORK_IN);
+			delete node;
+		}
+
+		if (requestingProc < _thisRank)
+		{
+			ret = true;
+		}
+	}
+
+	return ret;
+
+	//MPI_Recv(&leech, )
+	return true;
+}
+
+int incDonor(int donor)
+{
+	donor = (donor + 1) % _procCnt;
+	if (donor == _thisRank)
+	{
+		donor = (_thisRank + 1) % _procCnt;
+	}
+	return donor;
+}
+
 /**
  * Main solve cycle
  */
@@ -92,9 +177,11 @@ void doSolve()
 	int flag;
 	MPI_Status status;
 	bool initTokenSent = false;
-	int donor = 0;
+	int donor = (_thisRank + 1) % _procCnt;
 	bool hasToken = false;
 	TokenColor sendColor;
+
+	log("Initial donor will be: %d\n", donor);
 
 	while (true)
 	{
@@ -140,15 +227,42 @@ void doSolve()
 			case WORK_REQ:
 				// zadost o praci, prijmout a dopovedet
 				// zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
+				log("> Received work request from %d\n", status.MPI_SOURCE);
+
+				_stack.recountBcount();
+
+				if ((n - _stack.getBLevel()) > CUT_LEVEL)
+				{
+					if (handleWorkReq())
+					{
+						sendColor = BLACK; // Nodes were sent back, we could end prematurely
+					}
+				}
+				else
+				{
+					int reqProc;
+					logc("< Not enough cuttage, rejecting");
+					MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE, WORK_REQ,
+							MPI_COMM_WORLD, &status);
+					sendInt(_thisRank, reqProc, WORK_NONE);
+				}
 				break;
 			case WORK_IN:
 				// prisel rozdeleny zasobnik, prijmout
 				// deserializovat a spustit vypocet
+				log("> Got work from %d", status.MPI_SOURCE);
 				break;
 			case WORK_NONE:
 				// odmitnuti zadosti o praci
 				// zkusit jiny proces
 				// a nebo se prepnout do pasivniho stavu a cekat na token
+				log("> Rejected work request by %d", status.MPI_SOURCE);
+				dropMsg(status.MPI_SOURCE, WORK_NONE);
+
+				log("< Requesting work from %d\n", donor);
+				sendInt(_thisRank, donor, WORK_REQ);
+
+				donor = incDonor(donor);
 				break;
 			case TOKEN:
 				//ukoncovaci token, prijmout a nasledne preposlat
@@ -215,6 +329,7 @@ void doSolve()
 			sendToken(sendColor);
 		}
 
+		/***** IDLE STATE ****/
 		if (_stack.isEmpty())
 		{
 			if (_state != IDLE)
@@ -233,6 +348,11 @@ void doSolve()
 				initTokenSent = true;
 				sendToken(WHITE);
 			}
+
+			// Get moar work
+			log("< Requesting work from %d\n", donor);
+			sendWorkReq(donor);
+			donor = incDonor(donor);
 
 			continue;
 		}
@@ -268,9 +388,6 @@ void doSolve()
 		{
 			delete node;
 		}
-
-		// Still active
-		//ourColor = BLACK;
 	}
 // expanze stavu
 }
