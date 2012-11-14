@@ -6,3 +6,4 @@ par
 sekv
 .git/
 .settings/
+*.o
