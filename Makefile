@@ -10,10 +10,10 @@ default: all
 all: sekv par
 	
 sekv: $(OBJECTS)
-	$(CC) $(filter-out src/par.o, $(OBJECTS)) $(LDFLAGS) -o sekv
+	$(CC) src/sekv.cpp $(LDFLAGS) -o sekv
 	
 par: $(OBJECTS)
-	$(CC) $(filter-out src/sekv.o, $(OBJECTS)) $(LDFLAGS) -o par
+	$(CC) src/par.cpp $(LDFLAGS) -o par
 	
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
