@@ -182,6 +182,8 @@ void doSolve()
 	TokenColor sendColor;
 	bool workRequested = false;
 
+	int initialDonor = donor;
+
 	log("Initial donor will be: %d\n", donor);
 
 	while (true)
@@ -270,7 +272,7 @@ void doSolve()
 				// odmitnuti zadosti o praci
 				// zkusit jiny proces
 				// a nebo se prepnout do pasivniho stavu a cekat na token
-				log("> Rejected work request by %d", status.MPI_SOURCE);
+				log("> Got rejected by %d", status.MPI_SOURCE);
 				dropMsg(status.MPI_SOURCE, WORK_NONE);
 
 				log("< Requesting work from %d\n", donor);
@@ -369,6 +371,7 @@ void doSolve()
 				log("< Requesting work from %d\n", donor);
 				sendWorkReq(donor);
 				donor = incDonor(donor);
+				workRequested = true;
 			}
 
 			continue;
