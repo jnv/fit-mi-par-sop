@@ -252,7 +252,19 @@ void doSolve()
 			case WORK_IN:
 				// prisel rozdeleny zasobnik, prijmout
 				// deserializovat a spustit vypocet
-				log("> Got work from %d", status.MPI_SOURCE);
+				log("> Got work from %d\n", status.MPI_SOURCE);
+				int cnt;
+
+				MPI_Recv(&cnt, 1, MPI_INT, status.MPI_SOURCE, WORK_IN,
+											MPI_COMM_WORLD, &status);
+				log("> %d nodes will be loaded\n", cnt);
+				for(int i = 0; i < cnt; i++)
+				{
+					Node * node = rcvNode(status.MPI_SOURCE, WORK_IN);
+					_stack.push(node->start, node);
+				}
+				logc("Getting ACTIVE\n");
+				_state = ACTIVE;
 				break;
 			case WORK_NONE:
 				// odmitnuti zadosti o praci
