@@ -72,7 +72,7 @@ MY_PARALLEL_PROGRAM="./par $IFILE"
 # | Export environment variable to execution nodes                            |
 # |                                                                           |
 #  ===========================================================================
-# export MY_VARIABLE1="..."
+export LOG_DIR="/mnt/data/$USER"
 # export MY_VARIABLE2="..."
 
 
