@@ -174,6 +174,25 @@ int incDonor(int donor)
 	return donor;
 }
 
+void collectNodes()
+{
+	logc(
+			"--------------\nNo best solution was found, collecting partial solutions.\n");
+	for (int i = 1; i < _procCnt; i++)
+	{
+		Node * node = rcvNode(i, BETTER);
+		if (node->isBetterThan(_currentBest))
+		{
+			delete _currentBest;
+			_currentBest = node;
+		}
+		else
+		{
+			delete node;
+		}
+	}
+}
+
 /**
  * Main solve cycle
  */
@@ -319,9 +338,9 @@ void doSolve()
 					 else
 					 {*/
 					/*log("< Requesting work from %d\n", donor);
-					sendInt(_thisRank, donor, WORK_REQ);
-					donor = incDonor(donor);
-					}*/
+					 sendInt(_thisRank, donor, WORK_REQ);
+					 donor = incDonor(donor);
+					 }*/
 					break;
 				case TOKEN:
 					//ukoncovaci token, prijmout a nasledne preposlat
@@ -337,6 +356,7 @@ void doSolve()
 						{
 							logc("Received WHITE token, ending\n");
 							bcastEnd();
+							collectNodes();
 							end();
 						}
 
@@ -370,7 +390,7 @@ void doSolve()
 					//mam-li reseni, odeslu procesu 0
 					//nasledne ukoncim spoji cinnost
 					//jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
-
+					sendNode(_currentBest, INIT_PROC, n, BETTER);
 					end();
 					break;
 				default:
@@ -400,7 +420,9 @@ void doSolve()
 			}
 			else
 			{
+#ifdef DEBUG
 				logc("I\n");
+#endif
 			}
 
 			if (isInitProc() && !initTokenSent)
@@ -435,7 +457,7 @@ void doSolve()
 
 		if (node->hasMaxPrice())
 		{
-			logc("! Found node with max price\n");
+			logc("!!! Found node with max price\n");
 			bcastNode(node, BETTER);
 			delete _currentBest;
 			_currentBest = node;
@@ -444,11 +466,11 @@ void doSolve()
 
 		if (node->isBetterThan(_currentBest))
 		{
-			logc("< Found better solution, broadcasting\n");
+			logc("< Found better solution\n");
 			log("%s\n", node->toString().c_str());
 			delete _currentBest;
 			_currentBest = node;
-			bcastNode(node, BETTER);
+			//bcastNode(node, BETTER);
 		}
 
 		int expanded = expand(node);
@@ -457,7 +479,9 @@ void doSolve()
 		{
 			delete node;
 		}
+#ifdef DEBUG
 		logc("A\n");
+#endif
 	}
 // expanze stavu
 }
@@ -668,7 +692,14 @@ int main(int argc, char ** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &_procCnt);
 
 	char logFileName[20];
-	sprintf(logFileName, "logs/%d-%d.log", _procCnt, _thisRank);
+	char * logDir;
+	logDir = getenv("LOG_DIR");
+	if(!logDir)
+	{
+		logDir = "logs";
+	}
+
+	sprintf(logFileName, "%s/%d-%d.log", logDir, _procCnt, _thisRank);
 	_logFile = fopen(logFileName, "w");
 
 	log("Proc %d out of %d\n", _thisRank, _procCnt);
