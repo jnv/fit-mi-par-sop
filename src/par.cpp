@@ -493,7 +493,7 @@ bool loadSet(char * fname)
 
 	if (!f.is_open())
 	{
-		log("Cannot open input file: %s\n", fname);
+		cout << "Cannot open input file: " << fname;
 		return false;
 	}
 
@@ -501,7 +501,7 @@ bool loadSet(char * fname)
 #if !DEBUG
 	if(n < 20)
 	{
-		logc("n must be 20 or more\n");
+		cout << "n must be 20 or more << endl;
 		f.close();
 		return false;
 	}
@@ -512,14 +512,14 @@ bool loadSet(char * fname)
 	int limit = MAX_N / sizeof(int);
 	if (n > limit)
 	{
-		log("n must be lower than %d\n", limit);
+		cout << "n must be lower than " << limit << endl;
 		f.close();
 		return false;
 	}
 
 	if ((n / _procCnt) == 0)
 	{
-		log("not enough work for %d processes", _procCnt);
+		cout << "not enough work for " << _procCnt << " processes";
 		f.close();
 		return false;
 	}
@@ -529,7 +529,7 @@ bool loadSet(char * fname)
 #if !DEBUG
 	if(a < 2 || a > n / 10)
 	{
-		logc("a must be more than 1 and less than n/10.\n");
+		cout << "a must be more than 1 and less than n/10" << endl;
 		f.close();
 		return 0;
 	}
@@ -564,9 +564,10 @@ void initFirstProc(char * fname)
 {
 	if (!loadSet(fname))
 	{
-		logc("Failed to load input file, exiting\n");
+		cout << "Failed to load input file, exiting" << endl;
 		bcastEnd();
-		end();
+		exit(1);
+		//end();
 	}
 
 	int initArr[4] =
@@ -686,7 +687,6 @@ void initOtherProc()
 
 int main(int argc, char ** argv)
 {
-
 	MPI_Init(&argc, &argv); /* start up MPI */
 	MPI_Comm_rank(MPI_COMM_WORLD, &_thisRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &_procCnt);
@@ -694,7 +694,7 @@ int main(int argc, char ** argv)
 	char logFileName[20];
 	char * logDir;
 	logDir = getenv("LOG_DIR");
-	if(!logDir)
+	if (!logDir)
 	{
 		logDir = "logs";
 	}
