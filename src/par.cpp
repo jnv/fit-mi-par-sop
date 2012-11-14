@@ -145,9 +145,10 @@ bool handleWorkReq(int source)
 		log("< Sending %d nodes to %d\n", cnt, requestingProc);
 
 		sendInt(cnt, requestingProc, WORK_IN);
-		for (int i; i < cnt; i++)
+		for (int i = 0; i < cnt; i++)
 		{
 			Node * node = _stack.pop_front();
+
 			sendNode(node, requestingProc, n, WORK_IN);
 			delete node;
 		}
@@ -278,8 +279,10 @@ void doSolve()
 				log("> Got work from %d\n", status.MPI_SOURCE);
 				int cnt;
 
+				MPI_Status stmp;
+
 				MPI_Recv(&cnt, 1, MPI_INT, status.MPI_SOURCE, WORK_IN,
-						MPI_COMM_WORLD, &status);
+						MPI_COMM_WORLD, &stmp);
 				log("> %d nodes will be loaded\n", cnt);
 				for (int i = 0; i < cnt; i++)
 				{
