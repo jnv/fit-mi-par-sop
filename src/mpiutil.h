@@ -7,29 +7,20 @@
 
 enum Tag
 {
-	END,
-	INT,
-	BETTER,
-	WORK_IN,
-	WORK_REQ,
-	WORK_NONE,
-	INIT_PACK,
-	NODE,
-	TOKEN
-	//TOKEN_BLACK,
-	//TOKEN_WHITE
+	END, INT, BETTER, WORK_IN, WORK_REQ, WORK_NONE, INIT_PACK, NODE, TOKEN
+//TOKEN_BLACK,
+//TOKEN_WHITE
 };
 
 void sendNode(Node * node, int dest, int size, Tag tag = NODE)
 {
-	MPI_Send(node->placement, size, MPI_INT, dest, tag, MPI_COMM_WORLD);
+	MPI_Send(node->placement, size, MPI_INT, dest, tag, MPI_COMM_WORLD );
 }
 
 void sendInt(int in, int dst, Tag tag)
 {
 	MPI_Send(&in, 1, MPI_INT, dst, tag, MPI_COMM_WORLD );
 }
-
 
 void bcastInt(int in, Tag tag)
 {
@@ -50,16 +41,25 @@ void sendToken(TokenColor color)
 {
 	Tag tag;
 	/*if(color == BLACK)
-	{
-		tag = TOKEN_BLACK;
-	}
-	else
-	{
-		tag = TOKEN_WHITE;
-	}*/
+	 {
+	 tag = TOKEN_BLACK;
+	 }
+	 else
+	 {
+	 tag = TOKEN_WHITE;
+	 }*/
 	int target = (_thisRank + 1) % _procCnt;
 	//sendInt(_thisRank, target, tag);
 	sendInt(color, target, TOKEN);
+}
+
+TokenColor rcvToken(int from)
+{
+	MPI_Status status;
+	TokenColor color;
+	MPI_Recv(&color, 1, MPI_INT, from, TOKEN, MPI_COMM_WORLD, &status);
+
+	return color;
 }
 
 bool probeEnd()
@@ -89,7 +89,7 @@ Node * rcvNode(int source, Tag tag)
 	MPI_Status status;
 	MPI_Recv(buffer, n, MPI_INT, source, tag, MPI_COMM_WORLD, &status);
 	Node * node = new Node(buffer);
-	delete [] buffer;
+	delete[] buffer;
 	return node;
 }
 

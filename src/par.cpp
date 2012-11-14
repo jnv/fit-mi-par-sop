@@ -91,9 +91,10 @@ void doSolve()
 	_state = ACTIVE;
 	int flag;
 	MPI_Status status;
-	bool tokenSent = false;
-	TokenColor color = WHITE;
+	bool initTokenSent = false;
 	int donor = 0;
+	bool hasToken = false;
+	TokenColor incColor = WHITE, ourColor = WHITE;
 
 	while (true)
 	{
@@ -152,6 +153,48 @@ void doSolve()
 			case TOKEN:
 				//ukoncovaci token, prijmout a nasledne preposlat
 				// - bily nebo cerny v zavislosti na stavu procesu
+				incColor = rcvToken(status.MPI_SOURCE);
+				if (incColor == WHITE)
+				{
+					if (_state == ACTIVE)
+					{
+						logc("> WHITE token\n");
+						hasToken = true;
+					}
+					else // WHITE + IDLE
+					{
+					}
+				}
+				else // BLACK
+				{
+					logc("> BLACK token\n");
+					if (_state == ACTIVE)
+					{
+						if (isInitProc())
+						{
+							logc("Starting new round; ourColor = WHITE\n");
+							hasToken = true; // start new round
+							ourColor = WHITE;
+						}
+						else
+						{
+							logc("ourColor = BLACK\n");
+							hasToken = true;
+							ourColor = BLACK;
+						}
+					}
+					else // BLACK + IDLE
+					{
+						if(isInitProc())
+						{
+							initTokenSent = false;
+						}
+						else
+						{
+							sendToken(BLACK);
+						}
+					}
+				}
 				break;
 			case END:
 				//konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
@@ -162,7 +205,7 @@ void doSolve()
 				end();
 				break;
 			default:
-				log("< Received unknown tag: %d", status.MPI_TAG);
+				log("> Received unknown tag: %d", status.MPI_TAG);
 				break;
 			}
 		} //endif(flag)
@@ -180,10 +223,20 @@ void doSolve()
 				logc("I\n");
 			}
 
-			if (isInitProc() && !tokenSent)
+			/** IDLE
+			 * WHITE -> WHITE
+			 *  - initial process broadcasts
+			 */
+			if (hasToken)
+			{
+				hasToken = false;
+				sendToken(ourColor);
+			}
+
+			if (isInitProc() && !initTokenSent)
 			{
 				logc("< Sending initial WHITE token\n");
-				tokenSent = true;
+				initTokenSent = true;
 				sendToken(WHITE);
 			}
 
@@ -204,7 +257,7 @@ void doSolve()
 
 		if (node->isBetterThan(_currentBest))
 		{
-			logc("> Found better solution, broadcasting\n");
+			logc("< Found better solution, broadcasting\n");
 			log("%s\n", node->toString().c_str());
 			delete _currentBest;
 			_currentBest = node;
@@ -320,7 +373,7 @@ void initFirstProc(char * fname)
 //MPI_Send(initArr, 4, MPI_INT, i, INIT_ARR, MPI_COMM_WORLD );
 //MPI_Send(_inputSet, n, MPI_INT, i, INIT_SET, MPI_COMM_WORLD );
 	}
-	log("> Sent initialization array: n %d, c %d, a %d, upperBound %d\n",
+	log("< Sent initialization array: n %d, c %d, a %d, upperBound %d\n",
 			n, c, a, _upperBound);
 
 	_currentBest = new Node();
@@ -351,7 +404,7 @@ void initFirstProc(char * fname)
 			sendNode(_stack.pop_front(), i, n);
 		}
 	}
-	log("> Sent %d nodes to all processes\n", workLoad);
+	log("< Sent %d nodes to all processes\n", workLoad);
 
 //_stack.push(0, new Node());
 }
@@ -366,7 +419,7 @@ void initOtherProc()
 
 	if (probeEnd())
 	{
-		logc("< Received END, aborting {1}\n");
+		logc("> Received END, aborting {1}\n");
 		end();
 	}
 
@@ -397,7 +450,7 @@ void initOtherProc()
 
 	if (probeEnd())
 	{
-		logc("< Received END after barrier, aborting {2}\n");
+		logc("> Received END after barrier, aborting {2}\n");
 		end();
 	}
 
@@ -412,7 +465,7 @@ void initOtherProc()
 	{
 		MPI_Recv(setbuffer, n, MPI_INT, 0, NODE, MPI_COMM_WORLD, &status);
 		Node * node = new Node(setbuffer);
-		log("< Received node: \n%s", node->toString().c_str());
+		log("> Received node: \n%s", node->toString().c_str());
 		_stack.push(node->start, node);
 	}
 	delete[] setbuffer;
