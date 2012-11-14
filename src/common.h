@@ -32,6 +32,8 @@ extern FILE* _logFile;
 
 #define CUT_LEVEL 6
 
+#define CHECK_MSG_AMOUNT 100
+
 enum State {IDLE, ACTIVE};
 
 enum TokenColor {WHITE = 0, BLACK = 1};

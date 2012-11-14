@@ -35,7 +35,6 @@ Node* _currentBest;
 
 FILE* _logFile;
 
-#define LOG_OUTPUT _logFile // cerr
 void end()
 {
 	solveStop = MPI_Wtime();
@@ -188,182 +187,195 @@ void doSolve()
 	bool hasToken = false;
 	TokenColor sendColor;
 	bool workRequested = false;
+	int checkCtr = 0;
 
+	int workReqCtr = 0;
 	int initialDonor = donor;
 
 	log("Initial donor will be: %d\n", donor);
 
 	while (true)
 	{
-		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-		if (flag)
+		checkCtr++;
+		if ((checkCtr % CHECK_MSG_AMOUNT) == 0)
+		//if(true)
 		{
-			//prisla zprava, je treba ji obslouzit
-			//v promenne status je tag (status.MPI_TAG), cislo odesilatele (status.MPI_SOURCE)
-			//a pripadne cislo chyby (status.MPI_ERROR)
-			switch (status.MPI_TAG)
+			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag,
+					&status);
+			if (flag)
 			{
-			case BETTER:
-				// lepsi reseni
-				// porovnat s nasim _currentBest a bud prijmout, nebo zahodit
-				log("> Received BETTER from %d...\n", status.MPI_SOURCE);
-				Node * tmp;
-				tmp = rcvNode(status.MPI_SOURCE, BETTER);
-				log("%s\n", tmp->toString().c_str());
-				if (tmp->isBetterThan(_currentBest))
+				//prisla zprava, je treba ji obslouzit
+				//v promenne status je tag (status.MPI_TAG), cislo odesilatele (status.MPI_SOURCE)
+				//a pripadne cislo chyby (status.MPI_ERROR)
+				switch (status.MPI_TAG)
 				{
-					logc("Replacing our current best solution\n");
-					delete _currentBest;
-					_currentBest = tmp;
-					if (tmp->hasMaxPrice())
+				case BETTER:
+					// lepsi reseni
+					// porovnat s nasim _currentBest a bud prijmout, nebo zahodit
+					log("> Received BETTER from %d...\n", status.MPI_SOURCE);
+					Node * tmp;
+					tmp = rcvNode(status.MPI_SOURCE, BETTER);
+					log("%s\n", tmp->toString().c_str());
+					if (tmp->isBetterThan(_currentBest))
 					{
-						logc("! Received solution has max price\n");
-						if (isInitProc())
+						logc("Replacing our current best solution\n");
+						delete _currentBest;
+						_currentBest = tmp;
+						if (tmp->hasMaxPrice())
 						{
-							log("Received the best solution from %d\n",
-									status.MPI_SOURCE);
-							bcastEnd();
-						}
-						end();
-					}
-				}
-				else
-				{
-					logc("Ignoring received solution\n");
-					delete tmp;
-				}
-
-				break;
-			case WORK_REQ:
-				// zadost o praci, prijmout a dopovedet
-				// zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
-				log("> WORK_REQ from %d\n", status.MPI_SOURCE);
-
-				if (_state == IDLE)
-				{
-					int reqProc;
-					logc("< In IDLE state, rejecting\n");
-					MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE, WORK_REQ,
-							MPI_COMM_WORLD, &status);
-					sendInt(_thisRank, reqProc, WORK_NONE);
-				}
-				else
-				{
-					_stack.recountBcount();
-
-					int threshold;
-					threshold = n - _stack.getBLevel();
-
-					if (threshold > CUT_LEVEL)
-					{
-						log("Will handle work request, %d > %d\n", threshold, CUT_LEVEL);
-						if (handleWorkReq(status.MPI_SOURCE))
-						{
-							sendColor = BLACK; // Nodes were sent back, we could end prematurely
+							logc("! Received solution has max price\n");
+							if (isInitProc())
+							{
+								log("Received the best solution from %d\n",
+										status.MPI_SOURCE);
+								bcastEnd();
+							}
+							end();
 						}
 					}
 					else
 					{
+						logc("Ignoring received solution\n");
+						delete tmp;
+					}
+
+					break;
+				case WORK_REQ:
+					// zadost o praci, prijmout a dopovedet
+					// zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
+					log("> WORK_REQ from %d\n", status.MPI_SOURCE);
+
+					if (_state == IDLE)
+					{
 						int reqProc;
-						log("< Rejecting WORK_REQ because %d <= %d\n", threshold, CUT_LEVEL);
+						logc("< In IDLE state, rejecting\n");
 						MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE,
 								WORK_REQ, MPI_COMM_WORLD, &status);
 						sendInt(_thisRank, reqProc, WORK_NONE);
 					}
-				}
-
-				break;
-			case WORK_IN:
-				// prisel rozdeleny zasobnik, prijmout
-				// deserializovat a spustit vypocet
-				log("> Got work from %d\n", status.MPI_SOURCE);
-				int cnt;
-
-				MPI_Status stmp;
-
-				MPI_Recv(&cnt, 1, MPI_INT, status.MPI_SOURCE, WORK_IN,
-						MPI_COMM_WORLD, &stmp);
-				log("> %d nodes will be loaded\n", cnt);
-				for (int i = 0; i < cnt; i++)
-				{
-					Node * node = rcvNode(status.MPI_SOURCE, WORK_IN);
-					_stack.push(node->start, node);
-				}
-				logc("Getting ACTIVE\n");
-				_state = ACTIVE;
-				break;
-			case WORK_NONE:
-				// odmitnuti zadosti o praci
-				// zkusit jiny proces
-				// a nebo se prepnout do pasivniho stavu a cekat na token
-				log("> Got rejected by %d\n", status.MPI_SOURCE);
-				dropMsg(status.MPI_SOURCE, WORK_NONE);
-
-				if (donor == initialDonor)
-				{
-					break;
-				}
-				else
-				{
-					log("< Requesting work from %d\n", donor);
-					sendInt(_thisRank, donor, WORK_REQ);
-					donor = incDonor(donor);
-				}
-				break;
-			case TOKEN:
-				//ukoncovaci token, prijmout a nasledne preposlat
-				// - bily nebo cerny v zavislosti na stavu procesu
-				TokenColor incColor;
-				incColor = rcvToken(status.MPI_SOURCE);
-				hasToken = true;
-
-				if (incColor == WHITE)
-				{
-					logc("> WHITE token\n");
-					if (isInitProc())
-					{
-						logc("Received WHITE token, ending\n");
-						bcastEnd();
-						end();
-					}
-
-					if (_state == ACTIVE)
-					{
-						logc("Recoloring token to BLACK\n");
-						sendColor = BLACK;
-					}
-					else // IDLE
-					{
-						sendColor = WHITE;
-					}
-				}
-				else // (incColor == BLACK)
-				{
-					if (isInitProc())
-					{
-						initTokenSent = false; // Resend initial token once InitProc becomes IDLE
-					}
 					else
 					{
-						logc("> BLACK token\n");
-						sendColor = BLACK; // Resend black, no matter what our color is
-					}
-				}
+						_stack.recountBcount();
 
-				break;
-			case END:
-				//konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
-				//a rozeslal zpravu ukoncujici vypocet
-				//mam-li reseni, odeslu procesu 0
-				//nasledne ukoncim spoji cinnost
-				//jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
-				end();
-				break;
-			default:
-				log("> Received unknown tag: %d", status.MPI_TAG);
-				break;
-			}
-		} //endif(flag)
+						int threshold;
+						threshold = n - _stack.getBLevel();
+
+						if (threshold > CUT_LEVEL)
+						{
+							log("Will handle work request, %d > %d\n",
+									threshold, CUT_LEVEL);
+							if (handleWorkReq(status.MPI_SOURCE))
+							{
+								sendColor = BLACK; // Nodes were sent back, we could end prematurely
+							}
+						}
+						else
+						{
+							int reqProc;
+							log("< Rejecting WORK_REQ because %d <= %d\n",
+									threshold, CUT_LEVEL);
+							MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE,
+									WORK_REQ, MPI_COMM_WORLD, &status);
+							sendInt(_thisRank, reqProc, WORK_NONE);
+						}
+					}
+
+					break;
+				case WORK_IN:
+					// prisel rozdeleny zasobnik, prijmout
+					// deserializovat a spustit vypocet
+					log("> WORK_IN from %d\n", status.MPI_SOURCE);
+					int cnt;
+
+					MPI_Status stmp;
+
+					MPI_Recv(&cnt, 1, MPI_INT, status.MPI_SOURCE, WORK_IN,
+							MPI_COMM_WORLD, &stmp);
+					log("> %d nodes will be loaded\n", cnt);
+					for (int i = 0; i < cnt; i++)
+					{
+						Node * node = rcvNode(status.MPI_SOURCE, WORK_IN);
+						_stack.push(node->start, node);
+					}
+					logc("Getting ACTIVE\n");
+					_state = ACTIVE;
+					workRequested = false;
+					break;
+				case WORK_NONE:
+					// odmitnuti zadosti o praci
+					// zkusit jiny proces
+					// a nebo se prepnout do pasivniho stavu a cekat na token
+					log("> Got rejected by %d\n", status.MPI_SOURCE);
+					dropMsg(status.MPI_SOURCE, WORK_NONE);
+
+					workRequested = false;
+
+					/*if (donor == initialDonor)
+					 {
+					 break;
+					 }
+					 else
+					 {*/
+					/*log("< Requesting work from %d\n", donor);
+					sendInt(_thisRank, donor, WORK_REQ);
+					donor = incDonor(donor);
+					}*/
+					break;
+				case TOKEN:
+					//ukoncovaci token, prijmout a nasledne preposlat
+					// - bily nebo cerny v zavislosti na stavu procesu
+					TokenColor incColor;
+					incColor = rcvToken(status.MPI_SOURCE);
+					hasToken = true;
+
+					if (incColor == WHITE)
+					{
+						logc("> WHITE token\n");
+						if (isInitProc())
+						{
+							logc("Received WHITE token, ending\n");
+							bcastEnd();
+							end();
+						}
+
+						if (_state == ACTIVE)
+						{
+							logc("Recoloring token to BLACK\n");
+							sendColor = BLACK;
+						}
+						else // IDLE
+						{
+							sendColor = WHITE;
+						}
+					}
+					else // (incColor == BLACK)
+					{
+						if (isInitProc())
+						{
+							initTokenSent = false; // Resend initial token once InitProc becomes IDLE
+						}
+						else
+						{
+							logc("> BLACK token\n");
+							sendColor = BLACK; // Resend black, no matter what our color is
+						}
+					}
+
+					break;
+				case END:
+					//konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
+					//a rozeslal zpravu ukoncujici vypocet
+					//mam-li reseni, odeslu procesu 0
+					//nasledne ukoncim spoji cinnost
+					//jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
+					end();
+					break;
+				default:
+					log("> Received unknown tag: %d", status.MPI_TAG);
+					break;
+				}
+			} //endif(flag)
+		}
 
 		Node * node = NULL;
 
@@ -408,6 +420,7 @@ void doSolve()
 		}
 		else if (_state != ACTIVE)
 		{
+			_state = ACTIVE;
 			logc("| Coming to ACTIVE state\n");
 		}
 
