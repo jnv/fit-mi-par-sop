@@ -94,7 +94,7 @@ void doSolve()
 	bool initTokenSent = false;
 	int donor = 0;
 	bool hasToken = false;
-	TokenColor incColor = WHITE, ourColor = WHITE, sendColor;
+	TokenColor sendColor;
 
 	while (true)
 	{
@@ -153,6 +153,7 @@ void doSolve()
 			case TOKEN:
 				//ukoncovaci token, prijmout a nasledne preposlat
 				// - bily nebo cerny v zavislosti na stavu procesu
+				TokenColor incColor;
 				incColor = rcvToken(status.MPI_SOURCE);
 				hasToken = true;
 
@@ -166,32 +167,27 @@ void doSolve()
 						end();
 					}
 
-					if (ourColor == BLACK)
+					if (_state == ACTIVE)
 					{
 						logc("Recoloring token to BLACK\n");
 						sendColor = BLACK;
 					}
-					else
+					else // IDLE
 					{
 						sendColor = WHITE;
 					}
 				}
-				else if (incColor == BLACK) // BLACK
+				else // (incColor == BLACK)
 				{
 					if (isInitProc())
 					{
-						initTokenSent = false;
+						initTokenSent = false; // Resend initial token once InitProc becomes IDLE
 					}
 					else
 					{
 						logc("> BLACK token\n");
-						sendColor = BLACK; // Always send black, no matter what our color is
+						sendColor = BLACK; // Resend black, no matter what our color is
 					}
-				}
-				else
-				{
-					cerr << "WUT?" << endl;
-					exit(2);
 				}
 
 				break;
@@ -213,7 +209,6 @@ void doSolve()
 
 		if (!isInitProc() && hasToken) // InitProc sends token only when going to Idle
 		{
-			ourColor = WHITE;
 			hasToken = false;
 
 			log("< Sending %s token\n", COLORS[sendColor].c_str());
@@ -240,6 +235,10 @@ void doSolve()
 			}
 
 			continue;
+		}
+		else if (_state != ACTIVE)
+		{
+			logc("| Coming to ACTIVE state\n");
 		}
 
 		/***** Handle the node from stack here: *****/
@@ -271,7 +270,7 @@ void doSolve()
 		}
 
 		// Still active
-		ourColor = BLACK;
+		//ourColor = BLACK;
 	}
 // expanze stavu
 }
