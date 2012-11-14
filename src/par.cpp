@@ -123,6 +123,7 @@ bool handleWorkReq(int source)
 		{
 			cnt /= 2;
 		}
+		cnt /= k;
 
 		if (cnt == 0)
 		{
@@ -130,6 +131,11 @@ bool handleWorkReq(int source)
 			sendInt(_thisRank, requestingProc, WORK_NONE);
 			reqProcs.erase(it);
 			k--;
+		}
+
+		if (cnt > 0) // Once we get rid enough procs...
+		{
+			break;
 		}
 	}
 
@@ -230,26 +236,41 @@ void doSolve()
 			case WORK_REQ:
 				// zadost o praci, prijmout a dopovedet
 				// zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
-				log("> Received work request from %d\n", status.MPI_SOURCE);
+				log("> WORK_REQ from %d\n", status.MPI_SOURCE);
 
-				_stack.recountBcount();
-
-				if ((n - _stack.getBLevel()) > CUT_LEVEL)
-				{
-					logc("Will handle work request");
-					if (handleWorkReq(status.MPI_SOURCE))
-					{
-						sendColor = BLACK; // Nodes were sent back, we could end prematurely
-					}
-				}
-				else
+				if (_state == IDLE)
 				{
 					int reqProc;
-					logc("< Not enough cuttage, rejecting");
+					logc("< In IDLE state, rejecting\n");
 					MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE, WORK_REQ,
 							MPI_COMM_WORLD, &status);
 					sendInt(_thisRank, reqProc, WORK_NONE);
 				}
+				else
+				{
+					_stack.recountBcount();
+
+					int threshold;
+					threshold = n - _stack.getBLevel();
+
+					if (threshold > CUT_LEVEL)
+					{
+						log("Will handle work request, %d > %d\n", threshold, CUT_LEVEL);
+						if (handleWorkReq(status.MPI_SOURCE))
+						{
+							sendColor = BLACK; // Nodes were sent back, we could end prematurely
+						}
+					}
+					else
+					{
+						int reqProc;
+						log("< Rejecting WORK_REQ because %d <= %d\n", threshold, CUT_LEVEL);
+						MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE,
+								WORK_REQ, MPI_COMM_WORLD, &status);
+						sendInt(_thisRank, reqProc, WORK_NONE);
+					}
+				}
+
 				break;
 			case WORK_IN:
 				// prisel rozdeleny zasobnik, prijmout
@@ -258,9 +279,9 @@ void doSolve()
 				int cnt;
 
 				MPI_Recv(&cnt, 1, MPI_INT, status.MPI_SOURCE, WORK_IN,
-											MPI_COMM_WORLD, &status);
+						MPI_COMM_WORLD, &status);
 				log("> %d nodes will be loaded\n", cnt);
-				for(int i = 0; i < cnt; i++)
+				for (int i = 0; i < cnt; i++)
 				{
 					Node * node = rcvNode(status.MPI_SOURCE, WORK_IN);
 					_stack.push(node->start, node);
@@ -272,13 +293,19 @@ void doSolve()
 				// odmitnuti zadosti o praci
 				// zkusit jiny proces
 				// a nebo se prepnout do pasivniho stavu a cekat na token
-				log("> Got rejected by %d", status.MPI_SOURCE);
+				log("> Got rejected by %d\n", status.MPI_SOURCE);
 				dropMsg(status.MPI_SOURCE, WORK_NONE);
 
-				log("< Requesting work from %d\n", donor);
-				sendInt(_thisRank, donor, WORK_REQ);
-
-				donor = incDonor(donor);
+				if (donor == initialDonor)
+				{
+					break;
+				}
+				else
+				{
+					log("< Requesting work from %d\n", donor);
+					sendInt(_thisRank, donor, WORK_REQ);
+					donor = incDonor(donor);
+				}
 				break;
 			case TOKEN:
 				//ukoncovaci token, prijmout a nasledne preposlat
@@ -408,6 +435,7 @@ void doSolve()
 		{
 			delete node;
 		}
+		logc("A\n");
 	}
 // expanze stavu
 }
