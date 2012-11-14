@@ -84,7 +84,7 @@ int expand(Node * node)
 	return expanded;
 }
 
-bool handleWorkReq()
+bool handleWorkReq(int source)
 {
 	int flag = 1, k = 0;
 	//bool reqProcs[32] =	{ false };
@@ -97,8 +97,8 @@ bool handleWorkReq()
 	while (flag)
 	{
 		int reqProc;
-		MPI_Recv(&reqProc, 1, MPI_INT, status.MPI_SOURCE, WORK_REQ,
-				MPI_COMM_WORLD, &status);
+		MPI_Recv(&reqProc, 1, MPI_INT, source, WORK_REQ, MPI_COMM_WORLD,
+				&status);
 		reqProcs.insert(reqProc);
 
 		MPI_Iprobe(MPI_ANY_SOURCE, WORK_REQ, MPI_COMM_WORLD, &flag, &status);
@@ -116,7 +116,7 @@ bool handleWorkReq()
 	{
 		int requestingProc = *it;
 		int remains = _stack.getSize() - _stack.getBcount();
-		log("Bottom count: %d, remains: %d", _stack.getBcount(), remains);
+		log("Bottom count: %d, remains: %d\n", _stack.getBcount(), remains);
 
 		cnt = _stack.getBcount();
 		if (remains <= 2 * CUT_LEVEL)
@@ -180,6 +180,7 @@ void doSolve()
 	int donor = (_thisRank + 1) % _procCnt;
 	bool hasToken = false;
 	TokenColor sendColor;
+	bool workRequested = false;
 
 	log("Initial donor will be: %d\n", donor);
 
@@ -233,7 +234,8 @@ void doSolve()
 
 				if ((n - _stack.getBLevel()) > CUT_LEVEL)
 				{
-					if (handleWorkReq())
+					logc("Will handle work request");
+					if (handleWorkReq(status.MPI_SOURCE))
 					{
 						sendColor = BLACK; // Nodes were sent back, we could end prematurely
 					}
@@ -350,9 +352,12 @@ void doSolve()
 			}
 
 			// Get moar work
-			log("< Requesting work from %d\n", donor);
-			sendWorkReq(donor);
-			donor = incDonor(donor);
+			if (!workRequested)
+			{
+				log("< Requesting work from %d\n", donor);
+				sendWorkReq(donor);
+				donor = incDonor(donor);
+			}
 
 			continue;
 		}
