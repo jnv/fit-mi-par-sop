@@ -94,7 +94,7 @@ void doSolve()
 	bool initTokenSent = false;
 	int donor = 0;
 	bool hasToken = false;
-	TokenColor incColor = WHITE, ourColor = WHITE;
+	TokenColor incColor = WHITE, ourColor = WHITE, sendColor;
 
 	while (true)
 	{
@@ -154,46 +154,36 @@ void doSolve()
 				//ukoncovaci token, prijmout a nasledne preposlat
 				// - bily nebo cerny v zavislosti na stavu procesu
 				incColor = rcvToken(status.MPI_SOURCE);
+				hasToken = true;
+
+				if (ourColor == BLACK)
+				{
+					logc("Recoloring token to BLACK\n");
+					sendColor = BLACK;
+				}
+				else
+				{
+					sendColor = WHITE;
+				}
+
 				if (incColor == WHITE)
 				{
-					if (_state == ACTIVE)
+					logc("> WHITE token\n");
+					if (isInitProc())
 					{
-						logc("> WHITE token\n");
-						hasToken = true;
-					}
-					else // WHITE + IDLE
-					{
+						logc("Received WHITE token, ending\n");
+						bcastEnd();
+						end();
 					}
 				}
-				else // BLACK
+				else if (incColor == BLACK) // BLACK
 				{
 					logc("> BLACK token\n");
-					if (_state == ACTIVE)
-					{
-						if (isInitProc())
-						{
-							logc("Starting new round; ourColor = WHITE\n");
-							hasToken = true; // start new round
-							ourColor = WHITE;
-						}
-						else
-						{
-							logc("ourColor = BLACK\n");
-							hasToken = true;
-							ourColor = BLACK;
-						}
-					}
-					else // BLACK + IDLE
-					{
-						if(isInitProc())
-						{
-							initTokenSent = false;
-						}
-						else
-						{
-							sendToken(BLACK);
-						}
-					}
+				}
+				else
+				{
+					cerr << "WUT?" << endl;
+					exit(2);
 				}
 				break;
 			case END:
@@ -211,6 +201,14 @@ void doSolve()
 		} //endif(flag)
 
 		Node * node = NULL;
+
+		if (hasToken)
+		{
+			ourColor = WHITE;
+			hasToken = false;
+			sendToken(sendColor);
+		}
+
 		if (_stack.isEmpty())
 		{
 			if (_state != IDLE)
@@ -221,16 +219,6 @@ void doSolve()
 			else
 			{
 				logc("I\n");
-			}
-
-			/** IDLE
-			 * WHITE -> WHITE
-			 *  - initial process broadcasts
-			 */
-			if (hasToken)
-			{
-				hasToken = false;
-				sendToken(ourColor);
 			}
 
 			if (isInitProc() && !initTokenSent)
@@ -265,10 +253,14 @@ void doSolve()
 		}
 
 		int expanded = expand(node);
+
 		if (node != _currentBest)
 		{
 			delete node;
 		}
+
+		// Still active
+		ourColor = BLACK;
 	}
 // expanze stavu
 }
