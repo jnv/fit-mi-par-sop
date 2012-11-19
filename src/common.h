@@ -30,9 +30,9 @@ extern FILE* _logFile;
 #define LOG_OUTPUT _logFile // cerr
 // http://stackoverflow.com/questions/1644868/c-define-macro-for-debug-printing
 #define logc(fmt) \
-		do { fprintf(LOG_OUTPUT, fmt); fflush(LOG_OUTPUT); } while (0)
+		do { fprintf(LOG_OUTPUT, fmt); } while (0)
 #define log(fmt, ...) \
-        do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); fflush(LOG_OUTPUT); } while (0)
+        do { fprintf(LOG_OUTPUT, fmt, __VA_ARGS__); } while (0)
 
 #define isInitProc() (_thisRank == INIT_PROC)
 
