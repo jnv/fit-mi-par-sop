@@ -26,4 +26,6 @@
 # The path used for the standard output stream of the job.
 #$ -o .
 
+#$ -V
+
 ./sekv $IFILE
