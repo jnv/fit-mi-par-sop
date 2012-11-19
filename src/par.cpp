@@ -37,6 +37,7 @@ FILE* _logFile;
 
 void end()
 {
+	logc("| Arrived to final barrier\n");
 	MPI_Barrier(MPI_COMM_WORLD);
 	solveStop = MPI_Wtime();
 	log("| End. Total time: %f\n", solveStop - solveStart);
