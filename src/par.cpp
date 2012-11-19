@@ -37,6 +37,7 @@ FILE* _logFile;
 
 void end()
 {
+	MPI_Barrier(MPI_COMM_WORLD);
 	solveStop = MPI_Wtime();
 	log("| End. Total time: %f\n", solveStop - solveStart);
 	MPI_Finalize();
@@ -176,8 +177,7 @@ int incDonor(int donor)
 
 void collectNodes()
 {
-	logc(
-			"--------------\nNo best solution was found, collecting partial solutions.\n");
+	logc("--------------\nNo best solution was found, collecting partial solutions.\n");
 	for (int i = 1; i < _procCnt; i++)
 	{
 		Node * node = rcvNode(i, BETTER);
